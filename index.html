@@ -69,7 +69,7 @@
   </div>
   <div class="filter-group">
     <label>To Date</label>
-    <input type="date" id="fTo" value="2026-06-13">
+    <input type="date" id="fTo" value="2026-06-10">
   </div>
   <div class="filter-group">
     <label>Campaign</label>
@@ -202,6 +202,12 @@
 <footer>Ison Xperiences · Agent Performance Dashboard</footer>
 
 <script>
+// ---- GITHUB CONFIG ----
+// Set these to your raw GitHub URLs after pushing the CSVs to your repo
+const PROD_CSV_URL  = "https://raw.githubusercontent.com/I50N/Agent_Productivity_Stats/refs/heads/main/agent_productivity.csv";
+const KPI_CSV_URL   = "https://raw.githubusercontent.com/I50N/Agent_Productivity_Stats/refs/heads/main/agent_kpi.csv";
+const PAUSE_CSV_URL = "https://raw.githubusercontent.com/I50N/Agent_Productivity_Stats/refs/heads/main/agent_pause.csv";
+
 const PROD_CSV = `report_date,user_display_name,team_name,campaign_name,campaign,Team Leader,interactions_combined,connects_combined,connect_rate_combined,dmcs,dmc_rate,sales,conversion,expected_hours_sec,expected_hours_fmt,productive_time_sec,productive_time_fmt,lost_productive_sec,lost_productive_fmt,pct_productive,pause_time_sec,pause_time_fmt,talk_time_sec,talk_time_fmt,wrap_time_sec,wrap_time_fmt,waiting_time_sec,waiting_time_fmt,talk_pct,wrap_pct,idle_pct,rpc_pct,conversion_pct,dmc_talk_pct
 2026-06-01,Ababalwe Ndlela,NMS Waiver,NMS Waiver,NMS Waiver,Koketso Papo,278,202,72.66,102,50.5,6,5.88,28800,08:00:00,16532,04:35:32,12268,03:24:28,57.40277777777778,7564,02:06:04,14244,03:57:24,2288,00:38:08,8300,02:18:20,49.45833333333333,7.944444444444445,28.819444444444443,50.495049504950494,5.88235294117647,72.90087054198258
 2026-06-01,Akhona Dangisa,IPSOS(CCBSA),Ipsos_Absa_Voc,ABSA,Makhosazana Mbokazi,191,70,36.65,10,14.29,10,100.0,28800,08:00:00,16197,04:29:57,12603,03:30:03,56.23958333333333,9858,02:44:18,14911,04:08:31,1286,00:21:26,4870,01:21:10,51.77430555555556,4.465277777777778,16.90972222222222,14.285714285714285,100.0,34.390718261686004
@@ -3375,6 +3381,8 @@ const PROD_CSV = `report_date,user_display_name,team_name,campaign_name,campaign
 2026-06-10,Zanele Monyai,IPSOS(CCBSA),IPSOS (MTN),MTN,Eric Khoele,411,28,6.81,9,32.14,1,11.11,28800,08:00:00,20317,05:38:37,8483,02:21:23,70.54513888888889,8845,02:27:25,17709,04:55:09,2608,00:43:28,2834,00:47:14,61.48958333333333,9.055555555555555,9.840277777777779,32.142857142857146,11.11111111111111,10.141735840533062
 2026-06-10,Zizipho Songxishe,NMS Waiver,NMS Waiver,NMS Waiver,Helen Lekoko,320,164,51.25,70,42.68,2,2.86,32400,09:00:00,16453,04:34:13,15947,04:25:47,50.78086419753086,9231,02:33:51,13047,03:37:27,3406,00:56:46,12422,03:27:02,40.26851851851852,10.512345679012345,38.339506172839506,42.68292682926829,2.857142857142857,64.73518816586189
 `;
+const KPI_CSV = ``;
+
 const PAUSE_CSV = `Date,user_display_name,team_name,campaign_name,campaign,Team Leader,total_pause_instances,total_pause_time_sec,total_pause_time_fmt,auto_paused_sec,admin_sec,manual_dial_sec,technical_sec,voice_media_failure_sec,tea_sec,comfort_break_sec,login_sec,training_sec,queue_missed_call_sec,meeting_sec,lunch_sec,auto_paused_fmt,admin_fmt,manual_dial_fmt,technical_fmt,voice_media_failure_fmt,tea_fmt,comfort_break_fmt,login_fmt,training_fmt,queue_missed_call_fmt,meeting_fmt,lunch_fmt
 2026-06-01,Bandile Gabayi,Cell C Sales,Cell C Sales,Cell C Sales,Cell C DBN Team,29,9451,02:37:31,0,319,969,0,0,915,671,10,0,0,3737,2763,00:00:00,00:05:19,00:16:09,00:00:00,00:00:00,00:15:15,00:11:11,00:00:10,00:00:00,00:00:00,01:02:17,00:46:03
 2026-06-01,Batandwa Sibozi,Cell C Sales,Cell C Sales,Cell C Sales,Cell C JHB Team,21,7621,02:07:01,0,0,772,0,0,937,1637,2,0,0,1558,2712,00:00:00,00:00:00,00:12:52,00:00:00,00:00:00,00:15:37,00:27:17,00:00:02,00:00:00,00:00:00,00:25:58,00:45:12
@@ -6479,7 +6487,7 @@ const PAUSE_CATS = ['auto_paused', 'admin', 'manual_dial', 'technical', 'voice_m
 const PAUSE_LABELS = {auto_paused:'Auto Paused',admin:'Admin',manual_dial:'Manual Dial',technical:'Technical',voice_media_failure:'Media Failure',tea:'Tea',comfort_break:'Comfort Break',login:'Login',training:'Training',queue_missed_call:'Queue Miss',meeting:'Meeting',lunch:'Lunch'};
 const PAUSE_COLORS = ['#5b9bff','#ff6a3d','#ffc857','#ff5d5d','#c77dff','#3ddc97','#ff8c42','#4dd0e1','#a3e635','#f48c06','#8338ec','#fb5607'];
 
-let prodRows=[], pauseRows=[];
+let prodRows=[], kpiRows=[], pauseRows=[];
 let sorts={prod:{k:null,d:1},kpi:{k:null,d:1},pause:{k:null,d:1}};
 
 function parseCSV(text){
@@ -6542,7 +6550,7 @@ function pctCls(v,lo,hi){return v>=hi?'good':v>=lo?'warn':'bad';}
 
 function populateFilters(){
   const campaigns=new Set(),tls=new Set(),agents=new Set();
-  [...prodRows,...pauseRows].forEach(r=>{
+  [...prodRows,...kpiRows,...pauseRows].forEach(r=>{
     if(r.campaign_name) campaigns.add(r.campaign_name);
     const tl=r['Team Leader']||r.team_leader||'';
     if(tl&&tl!=='-') tls.add(tl);
@@ -6662,7 +6670,8 @@ function renderProductivity(){
 }
 
 function renderKPI(){
-  const raw=applyFilters(prodRows,'report_date','Team Leader');
+  const source=kpiRows.length?kpiRows:prodRows;
+  const raw=applyFilters(source,'report_date','Team Leader');
   const data=aggregateProd(raw);
   document.getElementById('k-rows').textContent=data.length.toLocaleString();
   document.getElementById('k-calls').textContent=sum(data,'interactions_combined').toLocaleString();
@@ -6759,12 +6768,37 @@ function renderAll(){
   renderPause();
 }
 
-function init(){
-  prodRows=parseCSV(PROD_CSV);
-  pauseRows=parseCSV(PAUSE_CSV);
+async function fetchIfSet(url, fallbackCSV, parser){
+  if(!url){
+    return parser(fallbackCSV);
+  }
+  try{
+    const res = await fetch(url + '?t=' + Date.now());
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    return parser(text);
+  } catch(err){
+    console.warn('Could not load', url, err.message, '— using embedded fallback');
+    return parser(fallbackCSV);
+  }
+}
+
+async function init(){
+  const st = document.getElementById('status');
+  st.textContent = 'Loading data...';
+  st.style.color = 'var(--muted)';
+
+  [prodRows, kpiRows, pauseRows] = await Promise.all([
+    fetchIfSet(PROD_CSV_URL,  PROD_CSV,  parseCSV),
+    fetchIfSet(KPI_CSV_URL,   KPI_CSV,   parseCSV),
+    fetchIfSet(PAUSE_CSV_URL, PAUSE_CSV, parseCSV)
+  ]);
+
   populateFilters();
   renderAll();
-  document.getElementById('status').textContent='Loaded '+prodRows.length+' productivity rows and '+pauseRows.length+' pause rows.';
+
+  const src = (PROD_CSV_URL || PAUSE_CSV_URL) ? 'GitHub' : 'embedded data';
+  st.textContent = 'Loaded ' + prodRows.length + ' productivity, ' + kpiRows.length + ' KPI and ' + pauseRows.length + ' pause rows from ' + src + ' at ' + new Date().toLocaleTimeString() + '.';
 }
 
 // tab switching
