@@ -6553,8 +6553,51 @@ function populateFilters(){
   document.getElementById('fAgent').innerHTML='<option value="">All Agents</option>'+[...agents].sort().map(a=>`<option>${a}</option>`).join('');
 }
 
+function aggregateByDateAgent(data){
+  const map={};
+  data.forEach(r=>{
+    const key=r.report_date+'||'+r.user_display_name;
+    if(!map[key]){
+      map[key]={
+        report_date:r.report_date,
+        user_display_name:r.user_display_name,
+        team_name:r.team_name,
+        campaign_name:r.campaign_name,
+        'Team Leader':r['Team Leader'],
+        expected_hours_sec:0,productive_time_sec:0,lost_productive_sec:0,
+        pause_time_sec:0,talk_time_sec:0,wrap_time_sec:0,waiting_time_sec:0,
+        interactions_combined:0
+      };
+    }
+    const a=map[key];
+    a.expected_hours_sec+=r.expected_hours_sec;
+    a.productive_time_sec+=r.productive_time_sec;
+    a.lost_productive_sec+=r.lost_productive_sec;
+    a.pause_time_sec+=r.pause_time_sec;
+    a.talk_time_sec+=r.talk_time_sec;
+    a.wrap_time_sec+=r.wrap_time_sec;
+    a.waiting_time_sec+=r.waiting_time_sec;
+    a.interactions_combined+=r.interactions_combined;
+  });
+  return Object.values(map).map(a=>{
+    a.expected_hours_fmt=hms(a.expected_hours_sec);
+    a.productive_time_fmt=hms(a.productive_time_sec);
+    a.lost_productive_fmt=hms(a.lost_productive_sec);
+    a.pause_time_fmt=hms(a.pause_time_sec);
+    a.talk_time_fmt=hms(a.talk_time_sec);
+    a.wrap_time_fmt=hms(a.wrap_time_sec);
+    a.waiting_time_fmt=hms(a.waiting_time_sec);
+    a.pct_productive=a.expected_hours_sec>0?a.productive_time_sec/a.expected_hours_sec*100:0;
+    a.talk_pct=a.expected_hours_sec>0?a.talk_time_sec/a.expected_hours_sec*100:0;
+    a.wrap_pct=a.expected_hours_sec>0?a.wrap_time_sec/a.expected_hours_sec*100:0;
+    a.idle_pct=a.expected_hours_sec>0?a.waiting_time_sec/a.expected_hours_sec*100:0;
+    return a;
+  });
+}
+
 function renderProductivity(){
-  const data=applyFilters(prodRows,'report_date','Team Leader');
+  const raw=applyFilters(prodRows,'report_date','Team Leader');
+  const data=aggregateByDateAgent(raw);
   document.getElementById('p-rows').textContent=data.length.toLocaleString();
   document.getElementById('p-online').textContent=hms(avg(data,'expected_hours_sec'));
   document.getElementById('p-talk').textContent=hms(avg(data,'talk_time_sec'));
