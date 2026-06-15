@@ -69,7 +69,7 @@
   </div>
   <div class="filter-group">
     <label>To Date</label>
-    <input type="date" id="fTo" value="2026-06-10">
+    <input type="date" id="fTo" value="2026-06-13">
   </div>
   <div class="filter-group">
     <label>Campaign</label>
@@ -6490,23 +6490,139 @@ const PAUSE_COLORS = ['#5b9bff','#ff6a3d','#ffc857','#ff5d5d','#c77dff','#3ddc97
 let prodRows=[], kpiRows=[], pauseRows=[];
 let sorts={prod:{k:null,d:1},kpi:{k:null,d:1},pause:{k:null,d:1}};
 
-function parseCSV(text){
+function parseCSVRaw(text){
   const lines=text.trim().split(/\r?\n/);
-  const hdr=lines[0].split(',').map(h=>h.trim());
+  const hdr=lines[0].split(',').map(h=>h.replace(/^"|"$/g,'').trim());
   return lines.slice(1).map(line=>{
-    const vals=line.split(',').map(v=>v.trim());
+    // handle quoted fields
+    const vals=[];
+    let cur='',inQ=false;
+    for(let i=0;i<line.length;i++){
+      if(line[i]==='"') inQ=!inQ;
+      else if(line[i]===','&&!inQ){vals.push(cur.trim());cur='';}
+      else cur+=line[i];
+    }
+    vals.push(cur.trim());
     const o={};
-    hdr.forEach((h,i)=>o[h]=vals[i]);
-    ['interactions_combined','connects_combined','dmcs','sales','total_pause_instances',
-     'expected_hours_sec','productive_time_sec','lost_productive_sec','talk_time_sec',
-     'wrap_time_sec','pause_time_sec','waiting_time_sec','total_pause_time_sec',
-     ...PAUSE_CATS.map(c=>c+'_sec'),
-     'pct_productive','talk_pct','wrap_pct','idle_pct','rpc_pct','conversion_pct',
-     'dmc_talk_pct','connect_rate_combined','dmc_rate','conversion'
-    ].forEach(k=>{if(o[k]!==undefined) o[k]=+o[k]||0;});
+    hdr.forEach((h,i)=>o[h]=vals[i]||'');
     return o;
   });
 }
+
+function toSec(s){
+  if(!s||s==='-') return 0;
+  s=String(s).trim();
+  const parts=s.split(':');
+  if(parts.length===3) return (+parts[0])*3600+(+parts[1])*60+(+parts[2]);
+  return 0;
+}
+
+function normaliseDate(s){
+  // convert 2026/06/01 -> 2026-06-01
+  return s?s.replace(/\//g,'-'):'';
+}
+
+function parseProdCSV(text){
+  return parseCSVRaw(text).map(r=>({
+    report_date: normaliseDate(r.report_date),
+    user_display_name: r.user_display_name,
+    team_name: r.team_name,
+    campaign_name: r.campaign_name,
+    'Team Leader': r['Team Leader'],
+    interactions_combined: +r.interactions_combined||0,
+    connects_combined: +r.connects_combined||0,
+    connect_rate_combined: +r.connect_rate_combined||0,
+    dmcs: +r.dmcs||0,
+    dmc_rate: +r.dmc_rate||0,
+    sales: +r.sales||0,
+    conversion: +r.conversion||0,
+    talk_time_sec: toSec(r.talk_time),
+    wrap_time_sec: toSec(r.wrap_time),
+    pause_time_sec: toSec(r.pause_time),
+    waiting_time_sec: toSec(r.waiting_time),
+    dmc_talk_time_sec: toSec(r.dmc_talk_time),
+    expected_hours_sec: toSec(r.expected_hours),
+    productive_time_sec: toSec(r.talk_time)+toSec(r.wrap_time),
+    lost_productive_sec: Math.max(0, toSec(r.expected_hours)-toSec(r.talk_time)-toSec(r.wrap_time)),
+    // formatted
+    talk_time_fmt: r.talk_time||'00:00:00',
+    wrap_time_fmt: r.wrap_time||'00:00:00',
+    pause_time_fmt: r.pause_time||'00:00:00',
+    waiting_time_fmt: r.waiting_time||'00:00:00',
+    expected_hours_fmt: r.expected_hours||'00:00:00',
+    productive_time_fmt: hms(toSec(r.talk_time)+toSec(r.wrap_time)),
+    lost_productive_fmt: hms(Math.max(0, toSec(r.expected_hours)-toSec(r.talk_time)-toSec(r.wrap_time))),
+    pct_productive: toSec(r.expected_hours)>0?(toSec(r.talk_time)+toSec(r.wrap_time))/toSec(r.expected_hours)*100:0,
+    talk_pct: toSec(r.expected_hours)>0?toSec(r.talk_time)/toSec(r.expected_hours)*100:0,
+    wrap_pct: toSec(r.expected_hours)>0?toSec(r.wrap_time)/toSec(r.expected_hours)*100:0,
+    idle_pct: toSec(r.expected_hours)>0?toSec(r.waiting_time)/toSec(r.expected_hours)*100:0,
+    rpc_pct: (+r.connects_combined||0)>0?(+r.dmcs||0)/(+r.connects_combined||0)*100:0,
+    conversion_pct: (+r.dmcs||0)>0?(+r.sales||0)/(+r.dmcs||0)*100:0,
+    dmc_talk_pct: toSec(r.talk_time)>0?toSec(r.dmc_talk_time)/toSec(r.talk_time)*100:0,
+  }));
+}
+
+function parseKpiCSV(text){
+  return parseCSVRaw(text).map(r=>({
+    report_date: normaliseDate(r.first_login_date),
+    user_display_name: r.user_display_name,
+    team_name: r.team_name,
+    campaign_name: r.campaign_name,
+    'Team Leader': r.Team_Leaders||r['Team Leader']||'',
+    interactions_combined: +r.interactions_combined||0,
+    connects_combined: +r.connects_combined||0,
+    connect_rate_combined: +r.connect_rate_combined||0,
+    dmcs: +r.dmcs||0,
+    dmc_rate: +r.dmc_rate||0,
+    sales: +r.total_sales_count||0,
+    conversion: +r.conversion_call_over_dmcs||0,
+    talk_time_sec: toSec(r.talk_time),
+    wrap_time_sec: toSec(r.wrap_time),
+    dmc_talk_time_sec: toSec(r.dmc_talk_time),
+    expected_hours_sec: toSec(r.logged_in_duration),
+    productive_time_sec: toSec(r.talk_time)+toSec(r.wrap_time),
+    lost_productive_sec: Math.max(0, toSec(r.logged_in_duration)-toSec(r.talk_time)-toSec(r.wrap_time)),
+    talk_time_fmt: r.talk_time||'00:00:00',
+    wrap_time_fmt: r.wrap_time||'00:00:00',
+    expected_hours_fmt: r.logged_in_duration||'00:00:00',
+    productive_time_fmt: hms(toSec(r.talk_time)+toSec(r.wrap_time)),
+    lost_productive_fmt: hms(Math.max(0, toSec(r.logged_in_duration)-toSec(r.talk_time)-toSec(r.wrap_time))),
+    pause_time_sec: 0, pause_time_fmt:'00:00:00',
+    waiting_time_sec:0, waiting_time_fmt:'00:00:00',
+    pct_productive: toSec(r.logged_in_duration)>0?(toSec(r.talk_time)+toSec(r.wrap_time))/toSec(r.logged_in_duration)*100:0,
+    talk_pct: toSec(r.logged_in_duration)>0?toSec(r.talk_time)/toSec(r.logged_in_duration)*100:0,
+    wrap_pct: toSec(r.logged_in_duration)>0?toSec(r.wrap_time)/toSec(r.logged_in_duration)*100:0,
+    idle_pct: 0,
+    rpc_pct: (+r.connects_combined||0)>0?(+r.dmcs||0)/(+r.connects_combined||0)*100:0,
+    conversion_pct: (+r.dmcs||0)>0?(+r.total_sales_count||0)/(+r.dmcs||0)*100:0,
+    dmc_talk_pct: toSec(r.talk_time)>0?toSec(r.dmc_talk_time)/toSec(r.talk_time)*100:0,
+  }));
+}
+
+function parsePauseCSV(text){
+  const PCATS=['auto_paused','admin','manual_dial','technical','voice_media_failure',
+    'tea','comfort_break','login','training','queue_missed_call','meeting','lunch'];
+  return parseCSVRaw(text).map(r=>{
+    const o={
+      Date: normaliseDate(r.Date),
+      user_display_name: r.user_display_name,
+      team_name: r.team_name,
+      campaign_name: r.campaign_name,
+      'Team Leader': r['Team Leader']||'',
+      total_pause_instances: +r.total_pause_instances||0,
+      total_pause_time_sec: toSec(r.total_pause_time),
+      total_pause_time_fmt: r.total_pause_time||'00:00:00',
+    };
+    PCATS.forEach(c=>{
+      o[c+'_sec']=toSec(r[c]);
+      o[c+'_fmt']=r[c]||'00:00:00';
+    });
+    return o;
+  });
+}
+
+// Legacy parseCSV kept for embedded fallback data
+function parseCSV(text){ return parseProdCSV(text); }
 
 function hms(s){
   s=Math.round(+s||0);
@@ -6670,7 +6786,7 @@ function renderProductivity(){
 }
 
 function renderKPI(){
-  const source=kpiRows.length?kpiRows:prodRows;
+  const source=kpiRows&&kpiRows.length?kpiRows:prodRows;
   const raw=applyFilters(source,'report_date','Team Leader');
   const data=aggregateProd(raw);
   document.getElementById('k-rows').textContent=data.length.toLocaleString();
@@ -6789,9 +6905,9 @@ async function init(){
   st.style.color = 'var(--muted)';
 
   [prodRows, kpiRows, pauseRows] = await Promise.all([
-    fetchIfSet(PROD_CSV_URL,  PROD_CSV,  parseCSV),
-    fetchIfSet(KPI_CSV_URL,   KPI_CSV,   parseCSV),
-    fetchIfSet(PAUSE_CSV_URL, PAUSE_CSV, parseCSV)
+    fetchIfSet(PROD_CSV_URL,  PROD_CSV,  parseProdCSV),
+    fetchIfSet(KPI_CSV_URL,   KPI_CSV,   parseKpiCSV),
+    fetchIfSet(PAUSE_CSV_URL, PAUSE_CSV, parsePauseCSV)
   ]);
 
   populateFilters();
