@@ -135,11 +135,11 @@
   <div class="rank-tables">
     <div>
       <div class="rank-label good">▲ Top 5 Agents (by Sales)</div>
-      <table id="top5"><thead><tr><th>Agent</th><th>Campaign</th><th>Connects</th><th>DMCs</th><th>Sales</th><th>RPC %</th><th>Conv %</th></tr></thead><tbody></tbody></table>
+      <table id="top5"><thead><tr><th>Agent</th><th>Connects</th><th>DMCs</th><th>Sales</th><th>RPC %</th><th>Conv %</th></tr></thead><tbody></tbody></table>
     </div>
     <div>
       <div class="rank-label bad">▼ Bottom 5 Agents (by Sales)</div>
-      <table id="bot5"><thead><tr><th>Agent</th><th>Campaign</th><th>Connects</th><th>DMCs</th><th>Sales</th><th>RPC %</th><th>Conv %</th></tr></thead><tbody></tbody></table>
+      <table id="bot5"><thead><tr><th>Agent</th><th>Connects</th><th>DMCs</th><th>Sales</th><th>RPC %</th><th>Conv %</th></tr></thead><tbody></tbody></table>
     </div>
   </div>
   <div class="table-wrap">
@@ -6553,7 +6553,8 @@ function populateFilters(){
   document.getElementById('fAgent').innerHTML='<option value="">All Agents</option>'+[...agents].sort().map(a=>`<option>${a}</option>`).join('');
 }
 
-function aggregateByDateAgent(data){
+function aggregateProd(data){
+  // Aggregate prod rows by date+agent (agents toggle campaigns during day)
   const map={};
   data.forEach(r=>{
     const key=r.report_date+'||'+r.user_display_name;
@@ -6562,11 +6563,11 @@ function aggregateByDateAgent(data){
         report_date:r.report_date,
         user_display_name:r.user_display_name,
         team_name:r.team_name,
-        campaign_name:r.campaign_name,
         'Team Leader':r['Team Leader'],
         expected_hours_sec:0,productive_time_sec:0,lost_productive_sec:0,
         pause_time_sec:0,talk_time_sec:0,wrap_time_sec:0,waiting_time_sec:0,
-        interactions_combined:0
+        interactions_combined:0,connects_combined:0,dmcs:0,sales:0,
+        dmc_talk_time_sec:0
       };
     }
     const a=map[key];
@@ -6578,6 +6579,10 @@ function aggregateByDateAgent(data){
     a.wrap_time_sec+=r.wrap_time_sec;
     a.waiting_time_sec+=r.waiting_time_sec;
     a.interactions_combined+=r.interactions_combined;
+    a.connects_combined+=r.connects_combined;
+    a.dmcs+=r.dmcs;
+    a.sales+=r.sales;
+    a.dmc_talk_time_sec+=r.dmc_talk_time_sec||0;
   });
   return Object.values(map).map(a=>{
     a.expected_hours_fmt=hms(a.expected_hours_sec);
@@ -6591,13 +6596,46 @@ function aggregateByDateAgent(data){
     a.talk_pct=a.expected_hours_sec>0?a.talk_time_sec/a.expected_hours_sec*100:0;
     a.wrap_pct=a.expected_hours_sec>0?a.wrap_time_sec/a.expected_hours_sec*100:0;
     a.idle_pct=a.expected_hours_sec>0?a.waiting_time_sec/a.expected_hours_sec*100:0;
+    a.rpc_pct=a.connects_combined>0?a.dmcs/a.connects_combined*100:0;
+    a.conversion_pct=a.dmcs>0?a.sales/a.dmcs*100:0;
+    a.dmc_talk_pct=a.talk_time_sec>0?a.dmc_talk_time_sec/a.talk_time_sec*100:0;
+    a.connect_rate_combined=a.interactions_combined>0?a.connects_combined/a.interactions_combined*100:0;
+    return a;
+  });
+}
+
+function aggregatePause(data){
+  const PAUSE_CATS=['auto_paused','admin','manual_dial','technical','voice_media_failure',
+    'tea','comfort_break','login','training','queue_missed_call','meeting','lunch'];
+  const map={};
+  data.forEach(r=>{
+    const key=r.Date+'||'+r.user_display_name;
+    if(!map[key]){
+      map[key]={
+        Date:r.Date,
+        user_display_name:r.user_display_name,
+        team_name:r.team_name,
+        'Team Leader':r['Team Leader'],
+        total_pause_instances:0,
+        total_pause_time_sec:0
+      };
+      PAUSE_CATS.forEach(c=>map[key][c+'_sec']=0);
+    }
+    const a=map[key];
+    a.total_pause_instances+=r.total_pause_instances;
+    a.total_pause_time_sec+=r.total_pause_time_sec;
+    PAUSE_CATS.forEach(c=>a[c+'_sec']+=r[c+'_sec']||0);
+  });
+  return Object.values(map).map(a=>{
+    a.total_pause_time_fmt=hms(a.total_pause_time_sec);
+    PAUSE_CATS.forEach(c=>a[c+'_fmt']=hms(a[c+'_sec']));
     return a;
   });
 }
 
 function renderProductivity(){
   const raw=applyFilters(prodRows,'report_date','Team Leader');
-  const data=aggregateByDateAgent(raw);
+  const data=aggregateProd(raw);
   document.getElementById('p-rows').textContent=data.length.toLocaleString();
   document.getElementById('p-online').textContent=hms(avg(data,'expected_hours_sec'));
   document.getElementById('p-talk').textContent=hms(avg(data,'talk_time_sec'));
@@ -6624,18 +6662,19 @@ function renderProductivity(){
 }
 
 function renderKPI(){
-  const data=applyFilters(prodRows,'report_date','Team Leader');
+  const raw=applyFilters(prodRows,'report_date','Team Leader');
+  const data=aggregateProd(raw);
   document.getElementById('k-rows').textContent=data.length.toLocaleString();
   document.getElementById('k-calls').textContent=sum(data,'interactions_combined').toLocaleString();
   document.getElementById('k-connects').textContent=sum(data,'connects_combined').toLocaleString();
   document.getElementById('k-dmcs').textContent=sum(data,'dmcs').toLocaleString();
   document.getElementById('k-sales').textContent=sum(data,'sales').toLocaleString();
 
-  // aggregate per agent for ranking
+  // aggregate per agent across filtered date range for ranking
   const agentMap={};
   data.forEach(r=>{
     const k=r.user_display_name;
-    if(!agentMap[k]) agentMap[k]={agent:k,campaign:r.campaign_name,connects:0,dmcs:0,sales:0};
+    if(!agentMap[k]) agentMap[k]={agent:k,connects:0,dmcs:0,sales:0};
     agentMap[k].connects+=r.connects_combined;
     agentMap[k].dmcs+=r.dmcs;
     agentMap[k].sales+=r.sales;
@@ -6646,7 +6685,7 @@ function renderKPI(){
     return a;
   }).sort((a,b)=>b.sales-a.sales);
 
-  const rankRow=(r,cls)=>`<tr><td class="agent">${r.agent}</td><td>${r.campaign}</td><td class="num">${r.connects}</td><td class="num">${r.dmcs}</td><td class="num ${cls}">${r.sales}</td><td class="num">${r.rpc_pct.toFixed(1)}%</td><td class="num">${r.conv_pct.toFixed(1)}%</td></tr>`;
+  const rankRow=(r,cls)=>`<tr><td class="agent">${r.agent}</td><td class="num">${r.connects}</td><td class="num">${r.dmcs}</td><td class="num ${cls}">${r.sales}</td><td class="num">${r.rpc_pct.toFixed(1)}%</td><td class="num">${r.conv_pct.toFixed(1)}%</td></tr>`;
   document.querySelector('#top5 tbody').innerHTML=agentArr.slice(0,5).map(r=>rankRow(r,'good')).join('');
   document.querySelector('#bot5 tbody').innerHTML=[...agentArr].reverse().slice(0,5).map(r=>rankRow(r,'bad')).join('');
 
@@ -6668,7 +6707,8 @@ function renderKPI(){
 }
 
 function renderPause(){
-  const data=applyFilters(pauseRows,'Date','Team Leader');
+  const raw=applyFilters(pauseRows,'Date','Team Leader');
+  const data=aggregatePause(raw);
   document.getElementById('pau-rows').textContent=data.length.toLocaleString();
   document.getElementById('pau-inst').textContent=sum(data,'total_pause_instances').toLocaleString();
   const totalSec=sum(data,'total_pause_time_sec');
