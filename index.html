@@ -6494,6 +6494,43 @@ const PAUSE_CATS = ['auto_paused', 'admin', 'manual_dial', 'technical', 'voice_m
 const PAUSE_LABELS = {auto_paused:'Auto Paused',admin:'Admin',manual_dial:'Manual Dial',technical:'Technical',voice_media_failure:'Media Failure',tea:'Tea',comfort_break:'Comfort Break',login:'Login',training:'Training',queue_missed_call:'Queue Miss',meeting:'Meeting',lunch:'Lunch'};
 const PAUSE_COLORS = ['#5b9bff','#ff6a3d','#ffc857','#ff5d5d','#c77dff','#3ddc97','#ff8c42','#4dd0e1','#a3e635','#f48c06','#8338ec','#fb5607'];
 
+// Derived from agent_productivity.csv campaign_name -> Campaign_Group mapping.
+// Used to backfill campaign_group for KPI/Pause CSVs which don't carry this column yet.
+const CAMPAIGN_GROUP_MAP = {
+  "NMS Waiver": "NMS",
+  "Ipsos_Absa_Voc": "IPSOS",
+  "IPSOS Toyota_PC Services": "IPSOS",
+  "Ipsos_Toyota Pc Services Africa": "IPSOS",
+  "IPSOS Toyota_Sales": "IPSOS",
+  "Ipsos_Toyota Sales Africa": "IPSOS",
+  "NMS Funeral": "NMS",
+  "Vodacom Device New Connections": "Voda DI",
+  "IPSOS Campaign(Swati)": "IPSOS",
+  "Cell C Sales": "Cell C Sales",
+  "IPSOS (MTN)": "IPSOS",
+  "NMS Device Insurance": "NMS",
+  "IPSOS_ABSA_NPS 2": "IPSOS",
+  "IPSOS (CCBSA)": "IPSOS",
+  "IPSOS_Toyota": "IPSOS",
+  "Netcare 2": "Netcare",
+  "IPSOS_Toyota_Auto Mark": "IPSOS",
+  "Ipsos_Toyota_automark Africa": "IPSOS",
+  "IPSOS_ABSA(NPS)_AFR": "IPSOS",
+  "Netcare": "Netcare",
+  "Vodacom Add-On Lines": "Voda AOL",
+  "IPSOS Campaign(Treat)": "IPSOS",
+  "IPSOS_SME 2": "IPSOS",
+  "IPSOS Campaign(Hilti)": "IPSOS",
+  "Ipsos_Nissan(Moz)": "IPSOS",
+  "IPSOS_PMI_2": "IPSOS"
+};
+
+function lookupCampaignGroup(campaignName, rawGroup){
+  if(rawGroup && rawGroup !== '#N/A') return rawGroup;
+  if(campaignName && CAMPAIGN_GROUP_MAP[campaignName]) return CAMPAIGN_GROUP_MAP[campaignName];
+  return 'Unmapped';
+}
+
 let prodRows=[], kpiRows=[], pauseRows=[];
 let sorts={prod:{k:null,d:1},kpi:{k:null,d:1},pause:{k:null,d:1}};
 
@@ -6535,7 +6572,7 @@ function parseProdCSV(text){
     user_display_name: r.user_display_name,
     team_name: r.team_name,
     campaign_name: r.campaign_name,
-    campaign_group: (function(){ const g=r['Campaign_Group']||r['Campaign Group']||''; return (g&&g!=='#N/A')?g:'Unmapped'; })(),
+    campaign_group: lookupCampaignGroup(r.campaign_name, r['Campaign_Group']||r['Campaign Group']||''),
     'Team Leader': r['Team Leader'],
     interactions_combined: +r.interactions_combined||0,
     connects_combined: +r.connects_combined||0,
@@ -6576,7 +6613,7 @@ function parseKpiCSV(text){
     user_display_name: r.user_display_name,
     team_name: r.team_name,
     campaign_name: r.campaign_name,
-    campaign_group: (function(){ const g=r['Campaign_Group']||r['Campaign Group']||''; return (g&&g!=='#N/A')?g:'Unmapped'; })(),
+    campaign_group: lookupCampaignGroup(r.campaign_name, r['Campaign_Group']||r['Campaign Group']||''),
     'Team Leader': r.Team_Leaders||r['Team Leader']||'',
     interactions_combined: +r.interactions_combined||0,
     connects_combined: +r.connects_combined||0,
@@ -6617,7 +6654,7 @@ function parsePauseCSV(text){
       user_display_name: r.user_display_name,
       team_name: r.team_name,
       campaign_name: r.campaign_name,
-      campaign_group: (function(){ const g=r['Campaign_Group']||r['Campaign Group']||''; return (g&&g!=='#N/A')?g:'Unmapped'; })(),
+      campaign_group: lookupCampaignGroup(r.campaign_name, r['Campaign_Group']||r['Campaign Group']||''),
       'Team Leader': r['Team Leader']||'',
       total_pause_instances: +r.total_pause_instances||0,
       total_pause_time_sec: toSec(r.total_pause_time),
