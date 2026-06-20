@@ -68,11 +68,11 @@
 <div class="filters">
   <div class="filter-group">
     <label>From Date</label>
-    <input type="date" id="fFrom" value="2026-06-01">
+    <input type="date" id="fFrom">
   </div>
   <div class="filter-group">
     <label>To Date</label>
-    <input type="date" id="fTo" value="2026-06-13">
+    <input type="date" id="fTo">
   </div>
   <div class="filter-group">
     <label>Campaign Group</label>
@@ -6932,6 +6932,14 @@ async function init(){
     fetchIfSet(KPI_CSV_URL,   KPI_CSV,   parseKpiCSV),
     fetchIfSet(PAUSE_CSV_URL, PAUSE_CSV, parsePauseCSV)
   ]);
+
+  // Auto-set date filters to the full range found in the data (only if not already set by user)
+  const allDates=[...prodRows.map(r=>r.report_date),...kpiRows.map(r=>r.report_date),...pauseRows.map(r=>r.Date)].filter(Boolean).sort();
+  if(allDates.length){
+    const fFrom=document.getElementById('fFrom'), fTo=document.getElementById('fTo');
+    if(!fFrom.value) fFrom.value=allDates[0];
+    if(!fTo.value) fTo.value=allDates[allDates.length-1];
+  }
 
   populateFilters();
   renderAll();
