@@ -75,6 +75,10 @@
     <input type="date" id="fTo" value="2026-06-13">
   </div>
   <div class="filter-group">
+    <label>Campaign Group</label>
+    <select id="fCampaignGroup"><option value="">All Campaign Groups</option></select>
+  </div>
+  <div class="filter-group">
     <label>Campaign</label>
     <select id="fCampaign"><option value="">All Campaigns</option></select>
   </div>
@@ -6531,7 +6535,7 @@ function parseProdCSV(text){
     user_display_name: r.user_display_name,
     team_name: r.team_name,
     campaign_name: r.campaign_name,
-    campaign_group: r['Campaign Group']||r.campaign_name,
+    campaign_group: r['Campaign_Group']||r['Campaign Group']||r.campaign_name,
     'Team Leader': r['Team Leader'],
     interactions_combined: +r.interactions_combined||0,
     connects_combined: +r.connects_combined||0,
@@ -6572,7 +6576,7 @@ function parseKpiCSV(text){
     user_display_name: r.user_display_name,
     team_name: r.team_name,
     campaign_name: r.campaign_name,
-    campaign_group: r['Campaign Group']||r.campaign_name,
+    campaign_group: r['Campaign_Group']||r['Campaign Group']||r.campaign_name,
     'Team Leader': r.Team_Leaders||r['Team Leader']||'',
     interactions_combined: +r.interactions_combined||0,
     connects_combined: +r.connects_combined||0,
@@ -6613,7 +6617,7 @@ function parsePauseCSV(text){
       user_display_name: r.user_display_name,
       team_name: r.team_name,
       campaign_name: r.campaign_name,
-      campaign_group: r['Campaign Group']||r.campaign_name,
+      campaign_group: r['Campaign_Group']||r['Campaign Group']||r.campaign_name,
       'Team Leader': r['Team Leader']||'',
       total_pause_instances: +r.total_pause_instances||0,
       total_pause_time_sec: toSec(r.total_pause_time),
@@ -6641,6 +6645,7 @@ function filters(){
   return{
     from:document.getElementById('fFrom').value,
     to:document.getElementById('fTo').value,
+    campaignGroup:document.getElementById('fCampaignGroup').value,
     campaign:document.getElementById('fCampaign').value,
     tl:document.getElementById('fTL').value,
     agent:document.getElementById('fAgent').value
@@ -6652,7 +6657,8 @@ function applyFilters(rows, dateKey, tlKey){
   return rows.filter(r=>{
     if(f.from && r[dateKey]<f.from) return false;
     if(f.to && r[dateKey]>f.to) return false;
-    if(f.campaign && r.campaign_group!==f.campaign) return false;
+    if(f.campaignGroup && r.campaign_group!==f.campaignGroup) return false;
+    if(f.campaign && r.campaign_name!==f.campaign) return false;
     if(f.tl && r[tlKey]!==f.tl) return false;
     if(f.agent && r.user_display_name!==f.agent) return false;
     return true;
@@ -6671,13 +6677,15 @@ function sorted(arr, key, dir){
 function pctCls(v,lo,hi){return v>=hi?'good':v>=lo?'warn':'bad';}
 
 function populateFilters(){
-  const campaigns=new Set(),tls=new Set(),agents=new Set();
+  const groups=new Set(),campaigns=new Set(),tls=new Set(),agents=new Set();
   [...prodRows,...kpiRows,...pauseRows].forEach(r=>{
-    if(r.campaign_group) campaigns.add(r.campaign_group);
+    if(r.campaign_group) groups.add(r.campaign_group);
+    if(r.campaign_name) campaigns.add(r.campaign_name);
     const tl=r['Team Leader']||r.team_leader||'';
     if(tl&&tl!=='-') tls.add(tl);
     if(r.user_display_name) agents.add(r.user_display_name);
   });
+  document.getElementById('fCampaignGroup').innerHTML='<option value="">All Campaign Groups</option>'+[...groups].sort().map(g=>`<option>${g}</option>`).join('');
   document.getElementById('fCampaign').innerHTML='<option value="">All Campaigns</option>'+[...campaigns].sort().map(c=>`<option>${c}</option>`).join('');
   document.getElementById('fTL').innerHTML='<option value="">All Team Leaders</option>'+[...tls].sort().map(t=>`<option>${t}</option>`).join('');
   document.getElementById('fAgent').innerHTML='<option value="">All Agents</option>'+[...agents].sort().map(a=>`<option>${a}</option>`).join('');
@@ -6943,7 +6951,7 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
 });
 
 // filters
-['fFrom','fTo','fCampaign','fTL','fAgent'].forEach(id=>document.getElementById(id).addEventListener('change',renderAll));
+['fFrom','fTo','fCampaignGroup','fCampaign','fTL','fAgent'].forEach(id=>document.getElementById(id).addEventListener('change',renderAll));
 
 // sortable headers
 [['#prodTable','prod'],['#kpiTable','kpi'],['#pauseTable','pause']].forEach(([sel,key])=>{
