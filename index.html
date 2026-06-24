@@ -5,216 +5,235 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Agent Performance Dashboard</title>
 <style>
-  :root{
-    --bg:#0f1417;--panel:#171d22;--panel-2:#1e262c;--line:#2a343b;
-    --text:#e8edf0;--muted:#8aa0ab;--accent:#ff6a3d;
-    --good:#3ddc97;--warn:#ffc857;--bad:#ff5d5d;
-    --mono:'JetBrains Mono','SF Mono',Consolas,monospace;
-    --sans:'Inter','Segoe UI',sans-serif;
-  }
-  *{box-sizing:border-box;}
-  body{margin:0;font-family:var(--sans);background:var(--bg);color:var(--text);padding:24px;}
-  header{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px;}
-  h1{font-size:22px;margin:0;font-weight:700;}
-  h1 span{color:var(--accent);}
-  .sub{color:var(--muted);font-size:13px;margin-top:4px;}
-  h2{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:24px 0 10px;}
-  .reload-btn{background:var(--accent);color:#1a0e08;border:none;padding:8px 14px;border-radius:6px;font-weight:700;cursor:pointer;font-size:13px;}
-  select,input[type=date]{background:var(--panel-2);border:1px solid var(--line);color:var(--text);padding:8px 12px;border-radius:6px;font-size:12px;}
-  .filters{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:20px;}
-  .filter-group{display:flex;flex-direction:column;gap:4px;}
-  .filter-group label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
-  .tabs{display:flex;border-bottom:1px solid var(--line);margin-bottom:0;}
-  .tab-btn{background:transparent;color:var(--muted);border:none;border-bottom:2px solid transparent;padding:10px 20px;font-weight:700;font-size:13px;cursor:pointer;}
-  .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
-  .tab-content{display:none;padding-top:20px;}
-  .tab-content.active{display:block;}
-  .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px;}
-  .card .label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
-  .card .value{font-size:19px;font-weight:700;margin-top:5px;font-family:var(--mono);}
-  .card .value.sm{font-size:13px;}
-  .table-wrap{overflow-x:auto;margin-bottom:24px;}
-  table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);font-size:12px;}
-  th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap;}
-  th{background:var(--panel-2);color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:1px;cursor:pointer;user-select:none;}
-  th:hover{color:var(--text);}
-  tr:hover td{background:rgba(255,255,255,0.03);}
-  td.num{font-family:var(--mono);text-align:right;}
-  td.agent{font-weight:600;}
-  .good{color:var(--good);font-weight:700;}
-  .warn{color:var(--warn);font-weight:700;}
-  .bad{color:var(--bad);font-weight:700;}
-  .red-bg{background:rgba(255,93,93,0.18)!important;font-weight:700;}
-  .rank-tables{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
-  @media(max-width:800px){.rank-tables{grid-template-columns:1fr;}}
-  .rank-label{font-size:13px;font-weight:700;margin-bottom:8px;}
-  .status{font-size:11px;color:var(--muted);margin-top:10px;}
-  footer{margin-top:30px;text-align:center;color:var(--muted);font-size:11px;}
+:root{
+--bg:#0f1417;--panel:#171d22;--panel-2:#1e262c;--line:#2a343b;
+--text:#e8edf0;--muted:#8aa0ab;--accent:#ff6a3d;
+--good:#3ddc97;--warn:#ffc857;--bad:#ff5d5d;
+--mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+--sans:'Inter','Segoe UI',sans-serif;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:var(--sans);background:var(--bg);color:var(--text);padding:24px;}
+header{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px;}
+h1{font-size:22px;margin:0;font-weight:700;}
+h1 span{color:var(--accent);}
+.sub{color:var(--muted);font-size:13px;margin-top:4px;}
+h2{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:24px 0 10px;}
+.reload-btn{background:var(--accent);color:#1a0e08;border:none;padding:8px 14px;border-radius:6px;font-weight:700;cursor:pointer;font-size:13px;}
+select,input[type=date]{background:var(--panel-2);border:1px solid var(--line);color:var(--text);padding:8px 12px;border-radius:6px;font-size:12px;}
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:20px;}
+.filter-group{display:flex;flex-direction:column;gap:4px;}
+.filter-group label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.tabs{display:flex;border-bottom:1px solid var(--line);margin-bottom:0;}
+.tab-btn{background:transparent;color:var(--muted);border:none;border-bottom:2px solid transparent;padding:10px 20px;font-weight:700;font-size:13px;cursor:pointer;}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-content{display:none;padding-top:20px;}
+.tab-content.active{display:block;}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px;}
+.card .label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.card .value{font-size:19px;font-weight:700;margin-top:5px;font-family:var(--mono);}
+.card .value.sm{font-size:13px;}
+.table-wrap{overflow-x:auto;margin-bottom:24px;}
+table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);font-size:12px;}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap;}
+th{background:var(--panel-2);color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:1px;cursor:pointer;user-select:none;}
+th:hover{color:var(--text);}
+tr:hover td{background:rgba(255,255,255,0.03);}
+td.num{font-family:var(--mono);text-align:right;}
+td.agent{font-weight:600;}
+.good{color:var(--good);font-weight:700;}
+.warn{color:var(--warn);font-weight:700;}
+.bad{color:var(--bad);font-weight:700;}
+.red-bg{background:rgba(255,93,93,0.18)!important;font-weight:700;}
+.rank-tables{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+@media(max-width:800px){.rank-tables{grid-template-columns:1fr;}}
+.rank-label{font-size:13px;font-weight:700;margin-bottom:8px;}
+.status{font-size:11px;color:var(--muted);margin-top:10px;}
+footer{margin-top:30px;text-align:center;color:var(--muted);font-size:11px;}
 </style>
 </head>
 <body>
 <header>
-  <div>
-    <h1>Agent <span>Performance</span> Dashboard</h1>
-    <div class="sub">Productivity · KPI · Pause Analysis · June 2026</div>
-  </div>
-  <button class="reload-btn" onclick="init()">Reload</button>
+<div>
+<h1>Agent <span>Performance</span> Dashboard</h1>
+<div class="sub">Productivity · KPI · Pause Analysis · June 2026</div>
+</div>
+<button class="reload-btn" onclick="init()">Reload</button>
 </header>
 <div class="sub" style="margin-bottom:16px;color:var(--muted);font-size:11px;">
-  Note: Campaign filter groups sub-campaigns under their parent client (e.g. IPSOS CCBSA + IPSOS MTN → IPSOS). Online/expected-hours reflects the agent's full shift and is not split per sub-campaign.
+Note: Campaign filter groups sub-campaigns under their parent client (e.g. IPSOS CCBSA + IPSOS MTN → IPSOS). Online/expected-hours reflects the agent's full shift and is not split per sub-campaign.
 </div>
-
 <div class="filters">
-  <div class="filter-group">
-    <label>From Date</label>
-    <input type="date" id="fFrom">
-  </div>
-  <div class="filter-group">
-    <label>To Date</label>
-    <input type="date" id="fTo">
-  </div>
-  <div class="filter-group">
-    <label>Campaign Group</label>
-    <select id="fCampaignGroup"><option value="">All Campaign Groups</option></select>
-  </div>
-  <div class="filter-group">
-    <label>Campaign</label>
-    <select id="fCampaign"><option value="">All Campaigns</option></select>
-  </div>
-  <div class="filter-group">
-    <label>Team Leader</label>
-    <select id="fTL"><option value="">All Team Leaders</option></select>
-  </div>
-  <div class="filter-group">
-    <label>Agent</label>
-    <select id="fAgent"><option value="">All Agents</option></select>
-  </div>
+<div class="filter-group">
+<label>From Date</label>
+<input type="date" id="fFrom">
 </div>
-
+<div class="filter-group">
+<label>To Date</label>
+<input type="date" id="fTo">
+</div>
+<div class="filter-group">
+<label>Campaign Group</label>
+<select id="fCampaignGroup"><option value="">All Campaign Groups</option></select>
+</div>
+<div class="filter-group">
+<label>Campaign</label>
+<select id="fCampaign"><option value="">All Campaigns</option></select>
+</div>
+<div class="filter-group">
+<label>Team Leader</label>
+<select id="fTL"><option value="">All Team Leaders</option></select>
+</div>
+<div class="filter-group">
+<label>Agent</label>
+<select id="fAgent"><option value="">All Agents</option></select>
+</div>
+</div>
 <div class="tabs">
-  <button class="tab-btn active" data-tab="prod">Agent Productivity</button>
-  <button class="tab-btn" data-tab="kpi">KPI Indicator</button>
-  <button class="tab-btn" data-tab="pause">Pause Analysis</button>
+<button class="tab-btn active" data-tab="prod">Agent Productivity</button>
+<button class="tab-btn" data-tab="kpi">KPI Indicator</button>
+<button class="tab-btn" data-tab="pause">Pause Analysis</button>
+<button class="tab-btn" data-tab="disp">Disposition Report</button>
 </div>
-
 <!-- TAB 1: PRODUCTIVITY -->
 <div class="tab-content active" id="tab-prod">
-  <div class="summary">
-    <div class="card"><div class="label">Agent Days</div><div class="value" id="p-rows">-</div></div>
-    <div class="card"><div class="label">Avg Online Time</div><div class="value" id="p-online">-</div></div>
-    <div class="card"><div class="label">Avg Talk Time</div><div class="value" id="p-talk">-</div></div>
-    <div class="card"><div class="label">Avg Wrap Time</div><div class="value" id="p-wrap">-</div></div>
-    <div class="card"><div class="label">Avg % Productive</div><div class="value" id="p-prod">-</div></div>
-  </div>
-  <div class="table-wrap">
-    <table id="prodTable">
-      <thead><tr>
-        <th data-s="report_date">Date</th>
-        <th data-s="user_display_name">Agent Name</th>
-        <th data-s="interactions_combined" class="num">Total Calls</th>
-        <th data-s="expected_hours_sec">Online Time</th>
-        <th data-s="productive_time_sec">Productive Time</th>
-        <th data-s="lost_productive_sec">Lost Productive</th>
-        <th data-s="pct_productive">% Productive</th>
-        <th data-s="pause_time_sec">Pause Time</th>
-        <th data-s="talk_time_sec">Talk Time</th>
-        <th data-s="wrap_time_sec">Wrap Time</th>
-        <th data-s="waiting_time_sec">Waiting Time</th>
-        <th data-s="talk_pct">Talk %</th>
-        <th data-s="wrap_pct">WrapUp %</th>
-        <th data-s="idle_pct">Idle %</th>
-      </tr></thead>
-      <tbody></tbody>
-    </table>
-  </div>
+<div class="summary">
+<div class="card"><div class="label">Agent Days</div><div class="value" id="p-rows">-</div></div>
+<div class="card"><div class="label">Avg Online Time</div><div class="value" id="p-online">-</div></div>
+<div class="card"><div class="label">Avg Talk Time</div><div class="value" id="p-talk">-</div></div>
+<div class="card"><div class="label">Avg Wrap Time</div><div class="value" id="p-wrap">-</div></div>
+<div class="card"><div class="label">Avg % Productive</div><div class="value" id="p-prod">-</div></div>
 </div>
-
+<div class="table-wrap">
+<table id="prodTable">
+<thead><tr>
+<th data-s="report_date">Date</th>
+<th data-s="user_display_name">Agent Name</th>
+<th data-s="interactions_combined" class="num">Total Calls</th>
+<th data-s="expected_hours_sec">Online Time</th>
+<th data-s="productive_time_sec">Productive Time</th>
+<th data-s="lost_productive_sec">Lost Productive</th>
+<th data-s="pct_productive">% Productive</th>
+<th data-s="pause_time_sec">Pause Time</th>
+<th data-s="talk_time_sec">Talk Time</th>
+<th data-s="wrap_time_sec">Wrap Time</th>
+<th data-s="waiting_time_sec">Waiting Time</th>
+<th data-s="talk_pct">Talk %</th>
+<th data-s="wrap_pct">WrapUp %</th>
+<th data-s="idle_pct">Idle %</th>
+</tr></thead>
+<tbody></tbody>
+</table>
+</div>
+</div>
 <!-- TAB 2: KPI -->
 <div class="tab-content" id="tab-kpi">
-  <div class="summary">
-    <div class="card"><div class="label">Agent Days</div><div class="value" id="k-rows">-</div></div>
-    <div class="card"><div class="label">Total Calls</div><div class="value" id="k-calls">-</div></div>
-    <div class="card"><div class="label">Total Connects</div><div class="value" id="k-connects">-</div></div>
-    <div class="card"><div class="label">Total DMCs</div><div class="value" id="k-dmcs">-</div></div>
-    <div class="card"><div class="label">Total Sales</div><div class="value" id="k-sales">-</div></div>
-  </div>
-  <div class="rank-tables">
-    <div>
-      <div class="rank-label good">▲ Top 5 Agents (by Sales)</div>
-      <table id="top5"><thead><tr><th>Agent</th><th>Connects</th><th>DMCs</th><th>Sales</th><th>RPC %</th><th>Conv %</th></tr></thead><tbody></tbody></table>
-    </div>
-    <div>
-      <div class="rank-label bad">▼ Bottom 5 Agents (by Sales)</div>
-      <table id="bot5"><thead><tr><th>Agent</th><th>Connects</th><th>DMCs</th><th>Sales</th><th>RPC %</th><th>Conv %</th></tr></thead><tbody></tbody></table>
-    </div>
-  </div>
-  <div class="table-wrap">
-    <table id="kpiTable">
-      <thead><tr>
-        <th data-s="report_date">Date</th>
-        <th data-s="user_display_name">Agent</th>
-        <th data-s="expected_hours_sec">Online Time</th>
-        <th data-s="interactions_combined" class="num">Total Calls</th>
-        <th data-s="connects_combined" class="num">Connects</th>
-        <th data-s="dmcs" class="num">RPC</th>
-        <th data-s="sales" class="num">Sales</th>
-        <th data-s="talk_time_sec">Talk-Time</th>
-        <th data-s="wrap_time_sec">WrapUp Time</th>
-        <th data-s="rpc_pct">RPC %</th>
-        <th data-s="conversion_pct">Conversion %</th>
-        <th data-s="dmc_talk_pct">DMC Talk %</th>
-      </tr></thead>
-      <tbody></tbody>
-    </table>
-  </div>
+<div class="summary">
+<div class="card"><div class="label">Agent Days</div><div class="value" id="k-rows">-</div></div>
+<div class="card"><div class="label">Total Calls</div><div class="value" id="k-calls">-</div></div>
+<div class="card"><div class="label">Total Connects</div><div class="value" id="k-connects">-</div></div>
+<div class="card"><div class="label">Total DMCs</div><div class="value" id="k-dmcs">-</div></div>
+<div class="card"><div class="label">Total Sales</div><div class="value" id="k-sales">-</div></div>
 </div>
-
+<div class="rank-tables">
+<div>
+<div class="rank-label good">▲ Top 5 Agents (by Sales)</div>
+<table id="top5"><thead><tr><th>Agent</th><th>Connects</th><th>DMCs</th><th>Sales</th><th>RPC %</th><th>Conv %</th></tr></thead><tbody></tbody></table>
+</div>
+<div>
+<div class="rank-label bad">▼ Bottom 5 Agents (by Sales)</div>
+<table id="bot5"><thead><tr><th>Agent</th><th>Connects</th><th>DMCs</th><th>Sales</th><th>RPC %</th><th>Conv %</th></tr></thead><tbody></tbody></table>
+</div>
+</div>
+<div class="table-wrap">
+<table id="kpiTable">
+<thead><tr>
+<th data-s="report_date">Date</th>
+<th data-s="user_display_name">Agent</th>
+<th data-s="expected_hours_sec">Online Time</th>
+<th data-s="interactions_combined" class="num">Total Calls</th>
+<th data-s="connects_combined" class="num">Connects</th>
+<th data-s="dmcs" class="num">RPC</th>
+<th data-s="sales" class="num">Sales</th>
+<th data-s="talk_time_sec">Talk-Time</th>
+<th data-s="wrap_time_sec">WrapUp Time</th>
+<th data-s="rpc_pct">RPC %</th>
+<th data-s="conversion_pct">Conversion %</th>
+<th data-s="dmc_talk_pct">DMC Talk %</th>
+</tr></thead>
+<tbody></tbody>
+</table>
+</div>
+</div>
 <!-- TAB 3: PAUSE -->
 <div class="tab-content" id="tab-pause">
-  <div class="summary">
-    <div class="card"><div class="label">Agent Days</div><div class="value" id="pau-rows">-</div></div>
-    <div class="card"><div class="label">Total Pause Instances</div><div class="value" id="pau-inst">-</div></div>
-    <div class="card"><div class="label">Total Pause Time</div><div class="value" id="pau-total">-</div></div>
-    <div class="card"><div class="label">Avg Pause / Agent Day</div><div class="value" id="pau-avg">-</div></div>
-    <div class="card"><div class="label">Top Pause Reason</div><div class="value sm" id="pau-top">-</div></div>
-  </div>
-  <h2>Pause Breakdown by Category</h2>
-  <div id="pauseBarChart" style="background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:20px;"></div>
-  <div class="table-wrap">
-    <table id="pauseTable">
-      <thead><tr>
-        <th data-s="Date">Date</th>
-        <th data-s="user_display_name">Agent</th>
-        <th data-s="total_pause_instances" class="num">Instances</th>
-        <th data-s="total_pause_time_sec">Total Pause</th>
-        <th data-s="lunch_sec">Lunch</th>
-        <th data-s="login_sec">Login</th>
-        <th data-s="admin_sec">Admin</th>
-        <th data-s="meeting_sec">Meeting</th>
-        <th data-s="tea_sec">Tea</th>
-        <th data-s="comfort_break_sec">Comfort Break</th>
-        <th data-s="manual_dial_sec">Manual Dial</th>
-        <th data-s="auto_paused_sec">Auto Paused</th>
-        <th data-s="training_sec">Training</th>
-        <th data-s="queue_missed_call_sec">Queue Miss</th>
-        <th data-s="voice_media_failure_sec">Media Fail</th>
-      </tr></thead>
-      <tbody></tbody>
-    </table>
-  </div>
+<div class="summary">
+<div class="card"><div class="label">Agent Days</div><div class="value" id="pau-rows">-</div></div>
+<div class="card"><div class="label">Total Pause Instances</div><div class="value" id="pau-inst">-</div></div>
+<div class="card"><div class="label">Total Pause Time</div><div class="value" id="pau-total">-</div></div>
+<div class="card"><div class="label">Avg Pause / Agent Day</div><div class="value" id="pau-avg">-</div></div>
+<div class="card"><div class="label">Top Pause Reason</div><div class="value sm" id="pau-top">-</div></div>
 </div>
-
+<h2>Pause Breakdown by Category</h2>
+<div id="pauseBarChart" style="background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:20px;"></div>
+<div class="table-wrap">
+<table id="pauseTable">
+<thead><tr>
+<th data-s="Date">Date</th>
+<th data-s="user_display_name">Agent</th>
+<th data-s="total_pause_instances" class="num">Instances</th>
+<th data-s="total_pause_time_sec">Total Pause</th>
+<th data-s="lunch_sec">Lunch</th>
+<th data-s="login_sec">Login</th>
+<th data-s="admin_sec">Admin</th>
+<th data-s="meeting_sec">Meeting</th>
+<th data-s="tea_sec">Tea</th>
+<th data-s="comfort_break_sec">Comfort Break</th>
+<th data-s="manual_dial_sec">Manual Dial</th>
+<th data-s="auto_paused_sec">Auto Paused</th>
+<th data-s="training_sec">Training</th>
+<th data-s="queue_missed_call_sec">Queue Miss</th>
+<th data-s="voice_media_failure_sec">Media Fail</th>
+</tr></thead>
+<tbody></tbody>
+</table>
+</div>
+</div>
+<div class="tab-content" id="tab-disp">
+<div class="summary">
+<div class="card"><div class="label">Total Calls</div><div class="value" id="d-total">-</div></div>
+<div class="card"><div class="label">Unique Agents</div><div class="value" id="d-agents">-</div></div>
+<div class="card"><div class="label">Unique Dispositions</div><div class="value" id="d-disps">-</div></div>
+<div class="card"><div class="label">Avg Talk Time</div><div class="value" id="d-talk">-</div></div>
+<div class="card"><div class="label">Avg Wrap Time</div><div class="value" id="d-wrap">-</div></div>
+</div>
+<h2>Disposition Breakdown</h2>
+<div id="dispBarChart" style="background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:20px;"></div>
+<div class="table-wrap">
+<table id="dispTable">
+<thead><tr>
+<th data-s="date">Date</th>
+<th data-s="agent_name">Agent</th>
+<th data-s="campaign">Campaign</th>
+<th data-s="disposition">Disposition</th>
+<th data-s="total" class="num">Total</th>
+<th data-s="talk_time_sec">Talk Time</th>
+<th data-s="wrap_time_sec">Wrap Time</th>
+</tr></thead>
+<tbody></tbody>
+</table>
+</div>
+</div>
 <div class="status" id="status"></div>
 <footer>Ison Xperiences · Agent Performance Dashboard</footer>
-
 <script>
 // ---- GITHUB CONFIG ----
 // Set these to your raw GitHub URLs after pushing the CSVs to your repo
 const PROD_CSV_URL  = "https://raw.githubusercontent.com/I50N/ISONBPO_AgentPerformanceStats/refs/heads/main/agent_productivity.csv";
 const KPI_CSV_URL   = "https://raw.githubusercontent.com/I50N/ISONBPO_AgentPerformanceStats/refs/heads/main/agent_kpi.csv";
 const PAUSE_CSV_URL = "https://raw.githubusercontent.com/I50N/ISONBPO_AgentPerformanceStats/refs/heads/main/agent_pause.csv";
-
+const DISP_CSV_URL  = "https://raw.githubusercontent.com/I50N/ISONBPO_AgentPerformanceStats/refs/heads/main/agent_disposition.csv";
 const PROD_CSV = `report_date,user_display_name,team_name,campaign_name,campaign,Team Leader,interactions_combined,connects_combined,connect_rate_combined,dmcs,dmc_rate,sales,conversion,expected_hours_sec,expected_hours_fmt,productive_time_sec,productive_time_fmt,lost_productive_sec,lost_productive_fmt,pct_productive,pause_time_sec,pause_time_fmt,talk_time_sec,talk_time_fmt,wrap_time_sec,wrap_time_fmt,waiting_time_sec,waiting_time_fmt,talk_pct,wrap_pct,idle_pct,rpc_pct,conversion_pct,dmc_talk_pct
 2026-06-01,Ababalwe Ndlela,NMS Waiver,NMS Waiver,NMS Waiver,Koketso Papo,278,202,72.66,102,50.5,6,5.88,28800,08:00:00,16532,04:35:32,12268,03:24:28,57.40277777777778,7564,02:06:04,14244,03:57:24,2288,00:38:08,8300,02:18:20,49.45833333333333,7.944444444444445,28.819444444444443,50.495049504950494,5.88235294117647,72.90087054198258
 2026-06-01,Akhona Dangisa,IPSOS(CCBSA),Ipsos_Absa_Voc,ABSA,Makhosazana Mbokazi,191,70,36.65,10,14.29,10,100.0,28800,08:00:00,16197,04:29:57,12603,03:30:03,56.23958333333333,9858,02:44:18,14911,04:08:31,1286,00:21:26,4870,01:21:10,51.77430555555556,4.465277777777778,16.90972222222222,14.285714285714285,100.0,34.390718261686004
@@ -3389,7 +3408,6 @@ const PROD_CSV = `report_date,user_display_name,team_name,campaign_name,campaign
 2026-06-10,Zizipho Songxishe,NMS Waiver,NMS Waiver,NMS Waiver,Helen Lekoko,320,164,51.25,70,42.68,2,2.86,32400,09:00:00,16453,04:34:13,15947,04:25:47,50.78086419753086,9231,02:33:51,13047,03:37:27,3406,00:56:46,12422,03:27:02,40.26851851851852,10.512345679012345,38.339506172839506,42.68292682926829,2.857142857142857,64.73518816586189
 `;
 const KPI_CSV = ``;
-
 const PAUSE_CSV = `Date,user_display_name,team_name,campaign_name,campaign,Team Leader,total_pause_instances,total_pause_time_sec,total_pause_time_fmt,auto_paused_sec,admin_sec,manual_dial_sec,technical_sec,voice_media_failure_sec,tea_sec,comfort_break_sec,login_sec,training_sec,queue_missed_call_sec,meeting_sec,lunch_sec,auto_paused_fmt,admin_fmt,manual_dial_fmt,technical_fmt,voice_media_failure_fmt,tea_fmt,comfort_break_fmt,login_fmt,training_fmt,queue_missed_call_fmt,meeting_fmt,lunch_fmt
 2026-06-01,Bandile Gabayi,Cell C Sales,Cell C Sales,Cell C Sales,Cell C DBN Team,29,9451,02:37:31,0,319,969,0,0,915,671,10,0,0,3737,2763,00:00:00,00:05:19,00:16:09,00:00:00,00:00:00,00:15:15,00:11:11,00:00:10,00:00:00,00:00:00,01:02:17,00:46:03
 2026-06-01,Batandwa Sibozi,Cell C Sales,Cell C Sales,Cell C Sales,Cell C JHB Team,21,7621,02:07:01,0,0,772,0,0,937,1637,2,0,0,1558,2712,00:00:00,00:00:00,00:12:52,00:00:00,00:00:00,00:15:37,00:27:17,00:00:02,00:00:00,00:00:00,00:25:58,00:45:12
@@ -6489,527 +6507,551 @@ const PAUSE_CSV = `Date,user_display_name,team_name,campaign_name,campaign,Team 
 2026-06-10,Thando Ndlovu,Vodacom Device,Vodacom Device New Connections,Vodacom Device Insurance,Nobuntu Mgoduka,21,10243,02:50:43,0,1113,163,0,0,1021,1543,1296,0,0,2332,2772,00:00:00,00:18:33,00:02:43,00:00:00,00:00:00,00:17:01,00:25:43,00:21:36,00:00:00,00:00:00,00:38:52,00:46:12
 2026-06-10,Tholakele Mvelase,Vodacom Device,Vodacom Device New Connections,Vodacom Device Insurance,Nobuntu Mgoduka,51,9521,02:38:41,0,620,612,0,0,1050,1436,22,0,9,3037,2732,00:00:00,00:10:20,00:10:12,00:00:00,00:00:00,00:17:30,00:23:56,00:00:22,00:00:00,00:00:09,00:50:37,00:45:32
 `;
-
 const PAUSE_CATS = ['auto_paused', 'admin', 'manual_dial', 'technical', 'voice_media_failure', 'tea', 'comfort_break', 'login', 'training', 'queue_missed_call', 'meeting', 'lunch'];
 const PAUSE_LABELS = {auto_paused:'Auto Paused',admin:'Admin',manual_dial:'Manual Dial',technical:'Technical',voice_media_failure:'Media Failure',tea:'Tea',comfort_break:'Comfort Break',login:'Login',training:'Training',queue_missed_call:'Queue Miss',meeting:'Meeting',lunch:'Lunch'};
 const PAUSE_COLORS = ['#5b9bff','#ff6a3d','#ffc857','#ff5d5d','#c77dff','#3ddc97','#ff8c42','#4dd0e1','#a3e635','#f48c06','#8338ec','#fb5607'];
-
 // Derived from agent_productivity.csv campaign_name -> Campaign_Group mapping.
 // Used to backfill campaign_group for KPI/Pause CSVs which don't carry this column yet.
 const CAMPAIGN_GROUP_MAP = {
-  "NMS Waiver": "NMS",
-  "Ipsos_Absa_Voc": "IPSOS",
-  "IPSOS Toyota_PC Services": "IPSOS",
-  "Ipsos_Toyota Pc Services Africa": "IPSOS",
-  "IPSOS Toyota_Sales": "IPSOS",
-  "Ipsos_Toyota Sales Africa": "IPSOS",
-  "NMS Funeral": "NMS",
-  "Vodacom Device New Connections": "Voda DI",
-  "IPSOS Campaign(Swati)": "IPSOS",
-  "Cell C Sales": "Cell C Sales",
-  "IPSOS (MTN)": "IPSOS",
-  "NMS Device Insurance": "NMS",
-  "IPSOS_ABSA_NPS 2": "IPSOS",
-  "IPSOS (CCBSA)": "IPSOS",
-  "IPSOS_Toyota": "IPSOS",
-  "Netcare 2": "Netcare",
-  "IPSOS_Toyota_Auto Mark": "IPSOS",
-  "Ipsos_Toyota_automark Africa": "IPSOS",
-  "IPSOS_ABSA(NPS)_AFR": "IPSOS",
-  "Netcare": "Netcare",
-  "Vodacom Add-On Lines": "Voda AOL",
-  "IPSOS Campaign(Treat)": "IPSOS",
-  "IPSOS_SME 2": "IPSOS",
-  "IPSOS Campaign(Hilti)": "IPSOS",
-  "Ipsos_Nissan(Moz)": "IPSOS",
-  "IPSOS_PMI_2": "IPSOS"
+"NMS Waiver": "NMS",
+"Ipsos_Absa_Voc": "IPSOS",
+"IPSOS Toyota_PC Services": "IPSOS",
+"Ipsos_Toyota Pc Services Africa": "IPSOS",
+"IPSOS Toyota_Sales": "IPSOS",
+"Ipsos_Toyota Sales Africa": "IPSOS",
+"NMS Funeral": "NMS",
+"Vodacom Device New Connections": "Voda DI",
+"IPSOS Campaign(Swati)": "IPSOS",
+"Cell C Sales": "Cell C Sales",
+"IPSOS (MTN)": "IPSOS",
+"NMS Device Insurance": "NMS",
+"IPSOS_ABSA_NPS 2": "IPSOS",
+"IPSOS (CCBSA)": "IPSOS",
+"IPSOS_Toyota": "IPSOS",
+"Netcare 2": "Netcare",
+"IPSOS_Toyota_Auto Mark": "IPSOS",
+"Ipsos_Toyota_automark Africa": "IPSOS",
+"IPSOS_ABSA(NPS)_AFR": "IPSOS",
+"Netcare": "Netcare",
+"Vodacom Add-On Lines": "Voda AOL",
+"IPSOS Campaign(Treat)": "IPSOS",
+"IPSOS_SME 2": "IPSOS",
+"IPSOS Campaign(Hilti)": "IPSOS",
+"Ipsos_Nissan(Moz)": "IPSOS",
+"IPSOS_PMI_2": "IPSOS"
 };
-
 function lookupCampaignGroup(campaignName, rawGroup){
-  if(rawGroup && rawGroup !== '#N/A') return rawGroup;
-  if(campaignName && CAMPAIGN_GROUP_MAP[campaignName]) return CAMPAIGN_GROUP_MAP[campaignName];
-  return 'Unmapped';
+if(rawGroup && rawGroup !== '#N/A') return rawGroup;
+if(campaignName && CAMPAIGN_GROUP_MAP[campaignName]) return CAMPAIGN_GROUP_MAP[campaignName];
+return 'Unmapped';
 }
-
-let prodRows=[], kpiRows=[], pauseRows=[];
-let sorts={prod:{k:null,d:1},kpi:{k:null,d:1},pause:{k:null,d:1}};
-
+let prodRows=[], kpiRows=[], pauseRows=[], dispRows=[];
+let sorts={prod:{k:null,d:1},kpi:{k:null,d:1},pause:{k:null,d:1},disp:{k:null,d:1}};
 function parseCSVRaw(text){
-  const lines=text.trim().split(/\r?\n/);
-  const hdr=lines[0].split(',').map(h=>h.replace(/^"|"$/g,'').trim());
-  return lines.slice(1).map(line=>{
-    // handle quoted fields
-    const vals=[];
-    let cur='',inQ=false;
-    for(let i=0;i<line.length;i++){
-      if(line[i]==='"') inQ=!inQ;
-      else if(line[i]===','&&!inQ){vals.push(cur.trim());cur='';}
-      else cur+=line[i];
-    }
-    vals.push(cur.trim());
-    const o={};
-    hdr.forEach((h,i)=>o[h]=vals[i]||'');
-    return o;
-  });
+const lines=text.trim().split(/\r?\n/);
+const hdr=lines[0].split(',').map(h=>h.replace(/^"|"$/g,'').trim());
+return lines.slice(1).map(line=>{
+// handle quoted fields
+const vals=[];
+let cur='',inQ=false;
+for(let i=0;i<line.length;i++){
+if(line[i]==='"') inQ=!inQ;
+else if(line[i]===','&&!inQ){vals.push(cur.trim());cur='';}
+else cur+=line[i];
 }
-
+vals.push(cur.trim());
+const o={};
+hdr.forEach((h,i)=>o[h]=vals[i]||'');
+return o;
+});
+}
 function toSec(s){
-  if(!s||s==='-') return 0;
-  s=String(s).trim();
-  const parts=s.split(':');
-  if(parts.length===3) return (+parts[0])*3600+(+parts[1])*60+(+parts[2]);
-  return 0;
+if(!s||s==='-') return 0;
+s=String(s).trim();
+const parts=s.split(':');
+if(parts.length===3) return (+parts[0])*3600+(+parts[1])*60+(+parts[2]);
+return 0;
 }
-
 function normaliseDate(s){
-  // convert 2026/06/01 -> 2026-06-01
-  return s?s.replace(/\//g,'-'):'';
+// convert 2026/06/01 -> 2026-06-01
+return s?s.replace(/\//g,'-'):'';
 }
-
 function parseProdCSV(text){
-  return parseCSVRaw(text).map(r=>({
-    report_date: normaliseDate(r.report_date),
-    user_display_name: r.user_display_name,
-    team_name: r.team_name,
-    campaign_name: r.campaign_name,
-    campaign_group: lookupCampaignGroup(r.campaign_name, r['Campaign_Group']||r['Campaign Group']||''),
-    'Team Leader': r['Team Leader'],
-    interactions_combined: +r.interactions_combined||0,
-    connects_combined: +r.connects_combined||0,
-    connect_rate_combined: +r.connect_rate_combined||0,
-    dmcs: +r.dmcs||0,
-    dmc_rate: +r.dmc_rate||0,
-    sales: +r.sales||0,
-    conversion: +r.conversion||0,
-    talk_time_sec: toSec(r.talk_time),
-    wrap_time_sec: toSec(r.wrap_time),
-    pause_time_sec: toSec(r.pause_time),
-    waiting_time_sec: toSec(r.waiting_time),
-    dmc_talk_time_sec: toSec(r.dmc_talk_time),
-    expected_hours_sec: toSec(r.expected_hours),
-    productive_time_sec: toSec(r.talk_time)+toSec(r.wrap_time),
-    lost_productive_sec: Math.max(0, toSec(r.expected_hours)-toSec(r.talk_time)-toSec(r.wrap_time)),
-    // formatted
-    talk_time_fmt: r.talk_time||'00:00:00',
-    wrap_time_fmt: r.wrap_time||'00:00:00',
-    pause_time_fmt: r.pause_time||'00:00:00',
-    waiting_time_fmt: r.waiting_time||'00:00:00',
-    expected_hours_fmt: r.expected_hours||'00:00:00',
-    productive_time_fmt: hms(toSec(r.talk_time)+toSec(r.wrap_time)),
-    lost_productive_fmt: hms(Math.max(0, toSec(r.expected_hours)-toSec(r.talk_time)-toSec(r.wrap_time))),
-    pct_productive: toSec(r.expected_hours)>0?(toSec(r.talk_time)+toSec(r.wrap_time))/toSec(r.expected_hours)*100:0,
-    talk_pct: toSec(r.expected_hours)>0?toSec(r.talk_time)/toSec(r.expected_hours)*100:0,
-    wrap_pct: toSec(r.expected_hours)>0?toSec(r.wrap_time)/toSec(r.expected_hours)*100:0,
-    idle_pct: toSec(r.expected_hours)>0?toSec(r.waiting_time)/toSec(r.expected_hours)*100:0,
-    rpc_pct: (+r.connects_combined||0)>0?(+r.dmcs||0)/(+r.connects_combined||0)*100:0,
-    conversion_pct: (+r.dmcs||0)>0?(+r.sales||0)/(+r.dmcs||0)*100:0,
-    dmc_talk_pct: toSec(r.talk_time)>0?toSec(r.dmc_talk_time)/toSec(r.talk_time)*100:0,
-  }));
+return parseCSVRaw(text).map(r=>({
+report_date: normaliseDate(r.report_date),
+user_display_name: r.user_display_name,
+team_name: r.team_name,
+campaign_name: r.campaign_name,
+campaign_group: lookupCampaignGroup(r.campaign_name, r['Campaign_Group']||r['Campaign Group']||''),
+'Team Leader': r['Team Leader'],
+interactions_combined: +r.interactions_combined||0,
+connects_combined: +r.connects_combined||0,
+connect_rate_combined: +r.connect_rate_combined||0,
+dmcs: +r.dmcs||0,
+dmc_rate: +r.dmc_rate||0,
+sales: +r.sales||0,
+conversion: +r.conversion||0,
+talk_time_sec: toSec(r.talk_time),
+wrap_time_sec: toSec(r.wrap_time),
+pause_time_sec: toSec(r.pause_time),
+waiting_time_sec: toSec(r.waiting_time),
+dmc_talk_time_sec: toSec(r.dmc_talk_time),
+expected_hours_sec: toSec(r.expected_hours),
+productive_time_sec: toSec(r.talk_time)+toSec(r.wrap_time),
+lost_productive_sec: Math.max(0, toSec(r.expected_hours)-toSec(r.talk_time)-toSec(r.wrap_time)),
+// formatted
+talk_time_fmt: r.talk_time||'00:00:00',
+wrap_time_fmt: r.wrap_time||'00:00:00',
+pause_time_fmt: r.pause_time||'00:00:00',
+waiting_time_fmt: r.waiting_time||'00:00:00',
+expected_hours_fmt: r.expected_hours||'00:00:00',
+productive_time_fmt: hms(toSec(r.talk_time)+toSec(r.wrap_time)),
+lost_productive_fmt: hms(Math.max(0, toSec(r.expected_hours)-toSec(r.talk_time)-toSec(r.wrap_time))),
+pct_productive: toSec(r.expected_hours)>0?(toSec(r.talk_time)+toSec(r.wrap_time))/toSec(r.expected_hours)*100:0,
+talk_pct: toSec(r.expected_hours)>0?toSec(r.talk_time)/toSec(r.expected_hours)*100:0,
+wrap_pct: toSec(r.expected_hours)>0?toSec(r.wrap_time)/toSec(r.expected_hours)*100:0,
+idle_pct: toSec(r.expected_hours)>0?toSec(r.waiting_time)/toSec(r.expected_hours)*100:0,
+rpc_pct: (+r.connects_combined||0)>0?(+r.dmcs||0)/(+r.connects_combined||0)*100:0,
+conversion_pct: (+r.dmcs||0)>0?(+r.sales||0)/(+r.dmcs||0)*100:0,
+dmc_talk_pct: toSec(r.talk_time)>0?toSec(r.dmc_talk_time)/toSec(r.talk_time)*100:0,
+}));
 }
-
 function parseKpiCSV(text){
-  return parseCSVRaw(text).map(r=>({
-    report_date: normaliseDate(r.first_login_date),
-    user_display_name: r.user_display_name,
-    team_name: r.team_name,
-    campaign_name: r.campaign_name,
-    campaign_group: lookupCampaignGroup(r.campaign_name, r['Campaign_Group']||r['Campaign Group']||''),
-    'Team Leader': r.Team_Leaders||r['Team Leader']||'',
-    interactions_combined: +r.interactions_combined||0,
-    connects_combined: +r.connects_combined||0,
-    connect_rate_combined: +r.connect_rate_combined||0,
-    dmcs: +r.dmcs||0,
-    dmc_rate: +r.dmc_rate||0,
-    sales: +r.total_sales_count||0,
-    conversion: +r.conversion_call_over_dmcs||0,
-    talk_time_sec: toSec(r.talk_time),
-    wrap_time_sec: toSec(r.wrap_time),
-    dmc_talk_time_sec: toSec(r.dmc_talk_time),
-    expected_hours_sec: toSec(r.logged_in_duration),
-    productive_time_sec: toSec(r.talk_time)+toSec(r.wrap_time),
-    lost_productive_sec: Math.max(0, toSec(r.logged_in_duration)-toSec(r.talk_time)-toSec(r.wrap_time)),
-    talk_time_fmt: r.talk_time||'00:00:00',
-    wrap_time_fmt: r.wrap_time||'00:00:00',
-    expected_hours_fmt: r.logged_in_duration||'00:00:00',
-    productive_time_fmt: hms(toSec(r.talk_time)+toSec(r.wrap_time)),
-    lost_productive_fmt: hms(Math.max(0, toSec(r.logged_in_duration)-toSec(r.talk_time)-toSec(r.wrap_time))),
-    pause_time_sec: 0, pause_time_fmt:'00:00:00',
-    waiting_time_sec:0, waiting_time_fmt:'00:00:00',
-    pct_productive: toSec(r.logged_in_duration)>0?(toSec(r.talk_time)+toSec(r.wrap_time))/toSec(r.logged_in_duration)*100:0,
-    talk_pct: toSec(r.logged_in_duration)>0?toSec(r.talk_time)/toSec(r.logged_in_duration)*100:0,
-    wrap_pct: toSec(r.logged_in_duration)>0?toSec(r.wrap_time)/toSec(r.logged_in_duration)*100:0,
-    idle_pct: 0,
-    rpc_pct: (+r.connects_combined||0)>0?(+r.dmcs||0)/(+r.connects_combined||0)*100:0,
-    conversion_pct: (+r.dmcs||0)>0?(+r.total_sales_count||0)/(+r.dmcs||0)*100:0,
-    dmc_talk_pct: toSec(r.talk_time)>0?toSec(r.dmc_talk_time)/toSec(r.talk_time)*100:0,
-  }));
+return parseCSVRaw(text).map(r=>({
+report_date: normaliseDate(r.first_login_date),
+user_display_name: r.user_display_name,
+team_name: r.team_name,
+campaign_name: r.campaign_name,
+campaign_group: lookupCampaignGroup(r.campaign_name, r['Campaign_Group']||r['Campaign Group']||''),
+'Team Leader': r.Team_Leaders||r['Team Leader']||'',
+interactions_combined: +r.interactions_combined||0,
+connects_combined: +r.connects_combined||0,
+connect_rate_combined: +r.connect_rate_combined||0,
+dmcs: +r.dmcs||0,
+dmc_rate: +r.dmc_rate||0,
+sales: +r.total_sales_count||0,
+conversion: +r.conversion_call_over_dmcs||0,
+talk_time_sec: toSec(r.talk_time),
+wrap_time_sec: toSec(r.wrap_time),
+dmc_talk_time_sec: toSec(r.dmc_talk_time),
+expected_hours_sec: toSec(r.logged_in_duration),
+productive_time_sec: toSec(r.talk_time)+toSec(r.wrap_time),
+lost_productive_sec: Math.max(0, toSec(r.logged_in_duration)-toSec(r.talk_time)-toSec(r.wrap_time)),
+talk_time_fmt: r.talk_time||'00:00:00',
+wrap_time_fmt: r.wrap_time||'00:00:00',
+expected_hours_fmt: r.logged_in_duration||'00:00:00',
+productive_time_fmt: hms(toSec(r.talk_time)+toSec(r.wrap_time)),
+lost_productive_fmt: hms(Math.max(0, toSec(r.logged_in_duration)-toSec(r.talk_time)-toSec(r.wrap_time))),
+pause_time_sec: 0, pause_time_fmt:'00:00:00',
+waiting_time_sec:0, waiting_time_fmt:'00:00:00',
+pct_productive: toSec(r.logged_in_duration)>0?(toSec(r.talk_time)+toSec(r.wrap_time))/toSec(r.logged_in_duration)*100:0,
+talk_pct: toSec(r.logged_in_duration)>0?toSec(r.talk_time)/toSec(r.logged_in_duration)*100:0,
+wrap_pct: toSec(r.logged_in_duration)>0?toSec(r.wrap_time)/toSec(r.logged_in_duration)*100:0,
+idle_pct: 0,
+rpc_pct: (+r.connects_combined||0)>0?(+r.dmcs||0)/(+r.connects_combined||0)*100:0,
+conversion_pct: (+r.dmcs||0)>0?(+r.total_sales_count||0)/(+r.dmcs||0)*100:0,
+dmc_talk_pct: toSec(r.talk_time)>0?toSec(r.dmc_talk_time)/toSec(r.talk_time)*100:0,
+}));
 }
-
 function parsePauseCSV(text){
-  const PCATS=['auto_paused','admin','manual_dial','technical','voice_media_failure',
-    'tea','comfort_break','login','training','queue_missed_call','meeting','lunch'];
-  return parseCSVRaw(text).map(r=>{
-    const o={
-      Date: normaliseDate(r.Date),
-      user_display_name: r.user_display_name,
-      team_name: r.team_name,
-      campaign_name: r.campaign_name,
-      campaign_group: lookupCampaignGroup(r.campaign_name, r['Campaign_Group']||r['Campaign Group']||''),
-      'Team Leader': r['Team Leader']||'',
-      total_pause_instances: +r.total_pause_instances||0,
-      total_pause_time_sec: toSec(r.total_pause_time),
-      total_pause_time_fmt: r.total_pause_time||'00:00:00',
-    };
-    PCATS.forEach(c=>{
-      o[c+'_sec']=toSec(r[c]);
-      o[c+'_fmt']=r[c]||'00:00:00';
-    });
-    return o;
-  });
+const PCATS=['auto_paused','admin','manual_dial','technical','voice_media_failure',
+'tea','comfort_break','login','training','queue_missed_call','meeting','lunch'];
+return parseCSVRaw(text).map(r=>{
+const o={
+Date: normaliseDate(r.Date),
+user_display_name: r.user_display_name,
+team_name: r.team_name,
+campaign_name: r.campaign_name,
+campaign_group: lookupCampaignGroup(r.campaign_name, r['Campaign_Group']||r['Campaign Group']||''),
+'Team Leader': r['Team Leader']||'',
+total_pause_instances: +r.total_pause_instances||0,
+total_pause_time_sec: toSec(r.total_pause_time),
+total_pause_time_fmt: r.total_pause_time||'00:00:00',
+};
+PCATS.forEach(c=>{
+o[c+'_sec']=toSec(r[c]);
+o[c+'_fmt']=r[c]||'00:00:00';
+});
+return o;
+});
 }
-
 // Legacy parseCSV kept for embedded fallback data
 function parseCSV(text){ return parseProdCSV(text); }
-
+function parseDispCSV(text){
+  return parseCSVRaw(text).map(r=>({
+    date: normaliseDate(r.date||r.Date||''),
+    campaign: r.campaign||r.Campaign||'',
+    disposition: r.disposition||r.Disposition||'',
+    agent_name: r.agent_name||r.Agent||'',
+    total: +r.total||0,
+    talk_time_sec: toSec(r.talk_time||'0:00:00'),
+    talk_time_fmt: r.talk_time||'00:00:00',
+    wrap_time_sec: toSec(r.wrap_time||'0:00:00'),
+    wrap_time_fmt: r.wrap_time||'00:00:00',
+  }));
+}
 function hms(s){
-  s=Math.round(+s||0);
-  return String(Math.floor(s/3600)).padStart(2,'0')+':'+String(Math.floor((s%3600)/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+s=Math.round(+s||0);
+return String(Math.floor(s/3600)).padStart(2,'0')+':'+String(Math.floor((s%3600)/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
 }
 function sum(arr,k){return arr.reduce((s,r)=>s+(+r[k]||0),0);}
 function avg(arr,k){return arr.length?sum(arr,k)/arr.length:0;}
-
 function filters(){
-  return{
-    from:document.getElementById('fFrom').value,
-    to:document.getElementById('fTo').value,
-    campaignGroup:document.getElementById('fCampaignGroup').value,
-    campaign:document.getElementById('fCampaign').value,
-    tl:document.getElementById('fTL').value,
-    agent:document.getElementById('fAgent').value
-  };
+return{
+from:document.getElementById('fFrom').value,
+to:document.getElementById('fTo').value,
+campaignGroup:document.getElementById('fCampaignGroup').value,
+campaign:document.getElementById('fCampaign').value,
+tl:document.getElementById('fTL').value,
+agent:document.getElementById('fAgent').value
+};
 }
-
 function applyFilters(rows, dateKey, tlKey){
+const f=filters();
+return rows.filter(r=>{
+if(f.from && r[dateKey]<f.from) return false;
+if(f.to && r[dateKey]>f.to) return false;
+if(f.campaignGroup && r.campaign_group!==f.campaignGroup) return false;
+if(f.campaign && r.campaign_name!==f.campaign) return false;
+if(f.tl && r[tlKey]!==f.tl) return false;
+if(f.agent && r.user_display_name!==f.agent) return false;
+return true;
+});
+}
+function sorted(arr, key, dir){
+if(!key) return arr;
+return [...arr].sort((a,b)=>{
+const av=isNaN(a[key])?a[key]:+a[key];
+const bv=isNaN(b[key])?b[key]:+b[key];
+return av<bv?-dir:av>bv?dir:0;
+});
+}
+function pctCls(v,lo,hi){return v>=hi?'good':v>=lo?'warn':'bad';}
+function populateFilters(){
+const groups=new Set(),campaigns=new Set(),tls=new Set(),agents=new Set();
+[...prodRows,...kpiRows,...pauseRows].forEach(r=>{
+if(r.campaign_group) groups.add(r.campaign_group);
+if(r.campaign_name) campaigns.add(r.campaign_name);
+const tl=r['Team Leader']||r.team_leader||'';
+if(tl&&tl!=='-') tls.add(tl);
+if(r.user_display_name) agents.add(r.user_display_name);
+});
+document.getElementById('fCampaignGroup').innerHTML='<option value="">All Campaign Groups</option>'+[...groups].sort().map(g=>`<option>${g}</option>`).join('');
+document.getElementById('fCampaign').innerHTML='<option value="">All Campaigns</option>'+[...campaigns].sort().map(c=>`<option>${c}</option>`).join('');
+document.getElementById('fTL').innerHTML='<option value="">All Team Leaders</option>'+[...tls].sort().map(t=>`<option>${t}</option>`).join('');
+document.getElementById('fAgent').innerHTML='<option value="">All Agents</option>'+[...agents].sort().map(a=>`<option>${a}</option>`).join('');
+}
+function aggregateProd(data){
+// Aggregate prod rows by date+agent (agents toggle campaigns/sub-campaigns during day)
+// NOTE: expected_hours_sec is a SHIFT-level fact (one value per agent per day),
+// not a per-campaign fact. The source script currently attributes the full shift
+// expected_hours to whichever campaign row appears first that day. To avoid double
+// counting when an agent worked 2-3 sub-campaigns (e.g. IPSOS CCBSA + IPSOS MTN),
+// we take the MAX expected_hours seen across that agent's rows for the day,
+// rather than summing it.
+const map={};
+data.forEach(r=>{
+const key=r.report_date+'||'+r.user_display_name;
+if(!map[key]){
+map[key]={
+report_date:r.report_date,
+user_display_name:r.user_display_name,
+team_name:r.team_name,
+'Team Leader':r['Team Leader'],
+expected_hours_sec:0,productive_time_sec:0,lost_productive_sec:0,
+pause_time_sec:0,talk_time_sec:0,wrap_time_sec:0,waiting_time_sec:0,
+interactions_combined:0,connects_combined:0,dmcs:0,sales:0,
+dmc_talk_time_sec:0
+};
+}
+const a=map[key];
+a.expected_hours_sec=Math.max(a.expected_hours_sec, r.expected_hours_sec);
+a.talk_time_sec+=r.talk_time_sec;
+a.wrap_time_sec+=r.wrap_time_sec;
+a.pause_time_sec+=r.pause_time_sec;
+a.waiting_time_sec+=r.waiting_time_sec;
+a.interactions_combined+=r.interactions_combined;
+a.connects_combined+=r.connects_combined;
+a.dmcs+=r.dmcs;
+a.sales+=r.sales;
+a.dmc_talk_time_sec+=r.dmc_talk_time_sec||0;
+});
+// recompute productive/lost-productive AFTER summing talk+wrap across all sub-campaigns
+Object.values(map).forEach(a=>{
+a.productive_time_sec = a.talk_time_sec + a.wrap_time_sec;
+a.lost_productive_sec = Math.max(0, a.expected_hours_sec - a.productive_time_sec);
+});
+return Object.values(map).map(a=>{
+a.expected_hours_fmt=hms(a.expected_hours_sec);
+a.productive_time_fmt=hms(a.productive_time_sec);
+a.lost_productive_fmt=hms(a.lost_productive_sec);
+a.pause_time_fmt=hms(a.pause_time_sec);
+a.talk_time_fmt=hms(a.talk_time_sec);
+a.wrap_time_fmt=hms(a.wrap_time_sec);
+a.waiting_time_fmt=hms(a.waiting_time_sec);
+a.pct_productive=a.expected_hours_sec>0?a.productive_time_sec/a.expected_hours_sec*100:0;
+a.talk_pct=a.expected_hours_sec>0?a.talk_time_sec/a.expected_hours_sec*100:0;
+a.wrap_pct=a.expected_hours_sec>0?a.wrap_time_sec/a.expected_hours_sec*100:0;
+a.idle_pct=a.expected_hours_sec>0?a.waiting_time_sec/a.expected_hours_sec*100:0;
+a.rpc_pct=a.connects_combined>0?a.dmcs/a.connects_combined*100:0;
+a.conversion_pct=a.dmcs>0?a.sales/a.dmcs*100:0;
+a.dmc_talk_pct=a.talk_time_sec>0?a.dmc_talk_time_sec/a.talk_time_sec*100:0;
+a.connect_rate_combined=a.interactions_combined>0?a.connects_combined/a.interactions_combined*100:0;
+return a;
+});
+}
+function aggregatePause(data){
+const PAUSE_CATS=['auto_paused','admin','manual_dial','technical','voice_media_failure',
+'tea','comfort_break','login','training','queue_missed_call','meeting','lunch'];
+const map={};
+data.forEach(r=>{
+const key=r.Date+'||'+r.user_display_name;
+if(!map[key]){
+map[key]={
+Date:r.Date,
+user_display_name:r.user_display_name,
+team_name:r.team_name,
+'Team Leader':r['Team Leader'],
+total_pause_instances:0,
+total_pause_time_sec:0
+};
+PAUSE_CATS.forEach(c=>map[key][c+'_sec']=0);
+}
+const a=map[key];
+a.total_pause_instances+=r.total_pause_instances;
+a.total_pause_time_sec+=r.total_pause_time_sec;
+PAUSE_CATS.forEach(c=>a[c+'_sec']+=r[c+'_sec']||0);
+});
+return Object.values(map).map(a=>{
+a.total_pause_time_fmt=hms(a.total_pause_time_sec);
+PAUSE_CATS.forEach(c=>a[c+'_fmt']=hms(a[c+'_sec']));
+return a;
+});
+}
+function renderProductivity(){
+const raw=applyFilters(prodRows,'report_date','Team Leader');
+const data=aggregateProd(raw);
+document.getElementById('p-rows').textContent=data.length.toLocaleString();
+document.getElementById('p-online').textContent=hms(avg(data,'expected_hours_sec'));
+document.getElementById('p-talk').textContent=hms(avg(data,'talk_time_sec'));
+document.getElementById('p-wrap').textContent=hms(avg(data,'wrap_time_sec'));
+document.getElementById('p-prod').textContent=avg(data,'pct_productive').toFixed(1)+'%';
+const rows=sorted(data,sorts.prod.k,sorts.prod.d);
+const TARGET=28800;
+document.querySelector('#prodTable tbody').innerHTML=rows.map(r=>`<tr>
+<td>${r.report_date}</td>
+<td class="agent">${r.user_display_name}</td>
+<td class="num">${r.interactions_combined.toLocaleString()}</td>
+<td class="${r.expected_hours_sec>TARGET*1.05?'red-bg':''}">${r.expected_hours_fmt}</td>
+<td>${r.productive_time_fmt}</td>
+<td>${r.lost_productive_fmt}</td>
+<td class="${pctCls(r.pct_productive,60,80)}">${r.pct_productive>=80?'▲':r.pct_productive>=60?'▬':'▼'} ${r.pct_productive.toFixed(1)}%</td>
+<td>${r.pause_time_fmt}</td>
+<td>${r.talk_time_fmt}</td>
+<td>${r.wrap_time_fmt}</td>
+<td>${r.waiting_time_fmt}</td>
+<td class="num ${pctCls(r.talk_pct,25,40)}">${r.talk_pct.toFixed(1)}%</td>
+<td class="num">${r.wrap_pct.toFixed(1)}%</td>
+<td class="num ${r.idle_pct>30?'bad':r.idle_pct>15?'warn':'good'}">${r.idle_pct.toFixed(1)}%</td>
+</tr>`).join('');
+}
+function renderKPI(){
+const source=kpiRows&&kpiRows.length?kpiRows:prodRows;
+const raw=applyFilters(source,'report_date','Team Leader');
+const data=aggregateProd(raw);
+document.getElementById('k-rows').textContent=data.length.toLocaleString();
+document.getElementById('k-calls').textContent=sum(data,'interactions_combined').toLocaleString();
+document.getElementById('k-connects').textContent=sum(data,'connects_combined').toLocaleString();
+document.getElementById('k-dmcs').textContent=sum(data,'dmcs').toLocaleString();
+document.getElementById('k-sales').textContent=sum(data,'sales').toLocaleString();
+// aggregate per agent across filtered date range for ranking
+const agentMap={};
+data.forEach(r=>{
+const k=r.user_display_name;
+if(!agentMap[k]) agentMap[k]={agent:k,connects:0,dmcs:0,sales:0};
+agentMap[k].connects+=r.connects_combined;
+agentMap[k].dmcs+=r.dmcs;
+agentMap[k].sales+=r.sales;
+});
+const agentArr=Object.values(agentMap).map(a=>{
+a.rpc_pct=a.connects>0?a.dmcs/a.connects*100:0;
+a.conv_pct=a.dmcs>0?a.sales/a.dmcs*100:0;
+return a;
+}).sort((a,b)=>b.sales-a.sales);
+const rankRow=(r,cls)=>`<tr><td class="agent">${r.agent}</td><td class="num">${r.connects}</td><td class="num">${r.dmcs}</td><td class="num ${cls}">${r.sales}</td><td class="num">${r.rpc_pct.toFixed(1)}%</td><td class="num">${r.conv_pct.toFixed(1)}%</td></tr>`;
+document.querySelector('#top5 tbody').innerHTML=agentArr.slice(0,5).map(r=>rankRow(r,'good')).join('');
+document.querySelector('#bot5 tbody').innerHTML=[...agentArr].reverse().slice(0,5).map(r=>rankRow(r,'bad')).join('');
+const rows=sorted(data,sorts.kpi.k,sorts.kpi.d);
+document.querySelector('#kpiTable tbody').innerHTML=rows.map(r=>`<tr>
+<td>${r.report_date}</td>
+<td class="agent">${r.user_display_name}</td>
+<td>${r.expected_hours_fmt}</td>
+<td class="num">${r.interactions_combined.toLocaleString()}</td>
+<td class="num">${r.connects_combined.toLocaleString()}</td>
+<td class="num">${r.dmcs.toLocaleString()}</td>
+<td class="num ${r.sales>0?'good':''}">${r.sales}</td>
+<td>${r.talk_time_fmt}</td>
+<td>${r.wrap_time_fmt}</td>
+<td class="num ${pctCls(r.rpc_pct,20,40)}">${r.rpc_pct.toFixed(1)}%</td>
+<td class="num ${pctCls(r.conversion_pct,5,10)}">${r.conversion_pct.toFixed(1)}%</td>
+<td class="num">${r.dmc_talk_pct.toFixed(1)}%</td>
+</tr>`).join('');
+}
+function renderPause(){
+const raw=applyFilters(pauseRows,'Date','Team Leader');
+const data=aggregatePause(raw);
+document.getElementById('pau-rows').textContent=data.length.toLocaleString();
+document.getElementById('pau-inst').textContent=sum(data,'total_pause_instances').toLocaleString();
+const totalSec=sum(data,'total_pause_time_sec');
+document.getElementById('pau-total').textContent=hms(totalSec);
+document.getElementById('pau-avg').textContent=data.length?hms(Math.round(totalSec/data.length)):'-';
+// bar chart
+const totals={};
+PAUSE_CATS.forEach(c=>totals[c]=sum(data,c+'_sec'));
+const grand=Object.values(totals).reduce((s,v)=>s+v,0)||1;
+const sortedCats=[...PAUSE_CATS].sort((a,b)=>totals[b]-totals[a]);
+document.getElementById('pau-top').textContent=PAUSE_LABELS[sortedCats[0]]||'-';
+document.getElementById('pauseBarChart').innerHTML=sortedCats.map(c=>{
+const pct=(totals[c]/grand*100).toFixed(1);
+const color=PAUSE_COLORS[PAUSE_CATS.indexOf(c)];
+return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:7px;">
+<div style="width:110px;font-size:11px;color:var(--muted);text-align:right;flex-shrink:0;">${PAUSE_LABELS[c]}</div>
+<div style="flex:1;background:var(--panel-2);border-radius:4px;height:16px;overflow:hidden;">
+<div style="width:${pct}%;background:${color};height:100%;border-radius:4px;min-width:2px;"></div>
+</div>
+<div style="width:100px;font-family:var(--mono);font-size:11px;">${hms(totals[c])} (${pct}%)</div>
+</div>`;
+}).join('');
+const rows=sorted(data,sorts.pause.k,sorts.pause.d);
+document.querySelector('#pauseTable tbody').innerHTML=rows.map(r=>`<tr>
+<td>${r.Date}</td>
+<td class="agent">${r.user_display_name}</td>
+<td class="num">${r.total_pause_instances}</td>
+<td class="${r.total_pause_time_sec>3*3600?'red-bg':''}">${r.total_pause_time_fmt}</td>
+<td class="num">${r.lunch_fmt}</td>
+<td class="num">${r.login_fmt}</td>
+<td class="num">${r.admin_fmt}</td>
+<td class="num">${r.meeting_fmt}</td>
+<td class="num">${r.tea_fmt}</td>
+<td class="num">${r.comfort_break_fmt}</td>
+<td class="num">${r.manual_dial_fmt}</td>
+<td class="num">${r.auto_paused_fmt}</td>
+<td class="num">${r.training_fmt}</td>
+<td class="num">${r.queue_missed_call_fmt}</td>
+<td class="num">${r.voice_media_failure_fmt}</td>
+</tr>`).join('');
+}
+function renderDisposition(){
   const f=filters();
-  return rows.filter(r=>{
-    if(f.from && r[dateKey]<f.from) return false;
-    if(f.to && r[dateKey]>f.to) return false;
-    if(f.campaignGroup && r.campaign_group!==f.campaignGroup) return false;
-    if(f.campaign && r.campaign_name!==f.campaign) return false;
-    if(f.tl && r[tlKey]!==f.tl) return false;
-    if(f.agent && r.user_display_name!==f.agent) return false;
+  const data=dispRows.filter(r=>{
+    if(f.from && r.date<f.from) return false;
+    if(f.to   && r.date>f.to)   return false;
+    if(f.campaign && r.campaign!==f.campaign) return false;
+    if(f.agent && r.agent_name!==f.agent) return false;
     return true;
   });
-}
-
-function sorted(arr, key, dir){
-  if(!key) return arr;
-  return [...arr].sort((a,b)=>{
-    const av=isNaN(a[key])?a[key]:+a[key];
-    const bv=isNaN(b[key])?b[key]:+b[key];
-    return av<bv?-dir:av>bv?dir:0;
-  });
-}
-
-function pctCls(v,lo,hi){return v>=hi?'good':v>=lo?'warn':'bad';}
-
-function populateFilters(){
-  const groups=new Set(),campaigns=new Set(),tls=new Set(),agents=new Set();
-  [...prodRows,...kpiRows,...pauseRows].forEach(r=>{
-    if(r.campaign_group) groups.add(r.campaign_group);
-    if(r.campaign_name) campaigns.add(r.campaign_name);
-    const tl=r['Team Leader']||r.team_leader||'';
-    if(tl&&tl!=='-') tls.add(tl);
-    if(r.user_display_name) agents.add(r.user_display_name);
-  });
-  document.getElementById('fCampaignGroup').innerHTML='<option value="">All Campaign Groups</option>'+[...groups].sort().map(g=>`<option>${g}</option>`).join('');
-  document.getElementById('fCampaign').innerHTML='<option value="">All Campaigns</option>'+[...campaigns].sort().map(c=>`<option>${c}</option>`).join('');
-  document.getElementById('fTL').innerHTML='<option value="">All Team Leaders</option>'+[...tls].sort().map(t=>`<option>${t}</option>`).join('');
-  document.getElementById('fAgent').innerHTML='<option value="">All Agents</option>'+[...agents].sort().map(a=>`<option>${a}</option>`).join('');
-}
-
-function aggregateProd(data){
-  // Aggregate prod rows by date+agent (agents toggle campaigns/sub-campaigns during day)
-  // NOTE: expected_hours_sec is a SHIFT-level fact (one value per agent per day),
-  // not a per-campaign fact. The source script currently attributes the full shift
-  // expected_hours to whichever campaign row appears first that day. To avoid double
-  // counting when an agent worked 2-3 sub-campaigns (e.g. IPSOS CCBSA + IPSOS MTN),
-  // we take the MAX expected_hours seen across that agent's rows for the day,
-  // rather than summing it.
-  const map={};
-  data.forEach(r=>{
-    const key=r.report_date+'||'+r.user_display_name;
-    if(!map[key]){
-      map[key]={
-        report_date:r.report_date,
-        user_display_name:r.user_display_name,
-        team_name:r.team_name,
-        'Team Leader':r['Team Leader'],
-        expected_hours_sec:0,productive_time_sec:0,lost_productive_sec:0,
-        pause_time_sec:0,talk_time_sec:0,wrap_time_sec:0,waiting_time_sec:0,
-        interactions_combined:0,connects_combined:0,dmcs:0,sales:0,
-        dmc_talk_time_sec:0
-      };
-    }
-    const a=map[key];
-    a.expected_hours_sec=Math.max(a.expected_hours_sec, r.expected_hours_sec);
-    a.talk_time_sec+=r.talk_time_sec;
-    a.wrap_time_sec+=r.wrap_time_sec;
-    a.pause_time_sec+=r.pause_time_sec;
-    a.waiting_time_sec+=r.waiting_time_sec;
-    a.interactions_combined+=r.interactions_combined;
-    a.connects_combined+=r.connects_combined;
-    a.dmcs+=r.dmcs;
-    a.sales+=r.sales;
-    a.dmc_talk_time_sec+=r.dmc_talk_time_sec||0;
-  });
-  // recompute productive/lost-productive AFTER summing talk+wrap across all sub-campaigns
-  Object.values(map).forEach(a=>{
-    a.productive_time_sec = a.talk_time_sec + a.wrap_time_sec;
-    a.lost_productive_sec = Math.max(0, a.expected_hours_sec - a.productive_time_sec);
-  });
-  return Object.values(map).map(a=>{
-    a.expected_hours_fmt=hms(a.expected_hours_sec);
-    a.productive_time_fmt=hms(a.productive_time_sec);
-    a.lost_productive_fmt=hms(a.lost_productive_sec);
-    a.pause_time_fmt=hms(a.pause_time_sec);
-    a.talk_time_fmt=hms(a.talk_time_sec);
-    a.wrap_time_fmt=hms(a.wrap_time_sec);
-    a.waiting_time_fmt=hms(a.waiting_time_sec);
-    a.pct_productive=a.expected_hours_sec>0?a.productive_time_sec/a.expected_hours_sec*100:0;
-    a.talk_pct=a.expected_hours_sec>0?a.talk_time_sec/a.expected_hours_sec*100:0;
-    a.wrap_pct=a.expected_hours_sec>0?a.wrap_time_sec/a.expected_hours_sec*100:0;
-    a.idle_pct=a.expected_hours_sec>0?a.waiting_time_sec/a.expected_hours_sec*100:0;
-    a.rpc_pct=a.connects_combined>0?a.dmcs/a.connects_combined*100:0;
-    a.conversion_pct=a.dmcs>0?a.sales/a.dmcs*100:0;
-    a.dmc_talk_pct=a.talk_time_sec>0?a.dmc_talk_time_sec/a.talk_time_sec*100:0;
-    a.connect_rate_combined=a.interactions_combined>0?a.connects_combined/a.interactions_combined*100:0;
-    return a;
-  });
-}
-
-function aggregatePause(data){
-  const PAUSE_CATS=['auto_paused','admin','manual_dial','technical','voice_media_failure',
-    'tea','comfort_break','login','training','queue_missed_call','meeting','lunch'];
-  const map={};
-  data.forEach(r=>{
-    const key=r.Date+'||'+r.user_display_name;
-    if(!map[key]){
-      map[key]={
-        Date:r.Date,
-        user_display_name:r.user_display_name,
-        team_name:r.team_name,
-        'Team Leader':r['Team Leader'],
-        total_pause_instances:0,
-        total_pause_time_sec:0
-      };
-      PAUSE_CATS.forEach(c=>map[key][c+'_sec']=0);
-    }
-    const a=map[key];
-    a.total_pause_instances+=r.total_pause_instances;
-    a.total_pause_time_sec+=r.total_pause_time_sec;
-    PAUSE_CATS.forEach(c=>a[c+'_sec']+=r[c+'_sec']||0);
-  });
-  return Object.values(map).map(a=>{
-    a.total_pause_time_fmt=hms(a.total_pause_time_sec);
-    PAUSE_CATS.forEach(c=>a[c+'_fmt']=hms(a[c+'_sec']));
-    return a;
-  });
-}
-
-function renderProductivity(){
-  const raw=applyFilters(prodRows,'report_date','Team Leader');
-  const data=aggregateProd(raw);
-  document.getElementById('p-rows').textContent=data.length.toLocaleString();
-  document.getElementById('p-online').textContent=hms(avg(data,'expected_hours_sec'));
-  document.getElementById('p-talk').textContent=hms(avg(data,'talk_time_sec'));
-  document.getElementById('p-wrap').textContent=hms(avg(data,'wrap_time_sec'));
-  document.getElementById('p-prod').textContent=avg(data,'pct_productive').toFixed(1)+'%';
-  const rows=sorted(data,sorts.prod.k,sorts.prod.d);
-  const TARGET=28800;
-  document.querySelector('#prodTable tbody').innerHTML=rows.map(r=>`<tr>
-    <td>${r.report_date}</td>
-    <td class="agent">${r.user_display_name}</td>
-    <td class="num">${r.interactions_combined.toLocaleString()}</td>
-    <td class="${r.expected_hours_sec>TARGET*1.05?'red-bg':''}">${r.expected_hours_fmt}</td>
-    <td>${r.productive_time_fmt}</td>
-    <td>${r.lost_productive_fmt}</td>
-    <td class="${pctCls(r.pct_productive,60,80)}">${r.pct_productive>=80?'▲':r.pct_productive>=60?'▬':'▼'} ${r.pct_productive.toFixed(1)}%</td>
-    <td>${r.pause_time_fmt}</td>
-    <td>${r.talk_time_fmt}</td>
-    <td>${r.wrap_time_fmt}</td>
-    <td>${r.waiting_time_fmt}</td>
-    <td class="num ${pctCls(r.talk_pct,25,40)}">${r.talk_pct.toFixed(1)}%</td>
-    <td class="num">${r.wrap_pct.toFixed(1)}%</td>
-    <td class="num ${r.idle_pct>30?'bad':r.idle_pct>15?'warn':'good'}">${r.idle_pct.toFixed(1)}%</td>
-  </tr>`).join('');
-}
-
-function renderKPI(){
-  const source=kpiRows&&kpiRows.length?kpiRows:prodRows;
-  const raw=applyFilters(source,'report_date','Team Leader');
-  const data=aggregateProd(raw);
-  document.getElementById('k-rows').textContent=data.length.toLocaleString();
-  document.getElementById('k-calls').textContent=sum(data,'interactions_combined').toLocaleString();
-  document.getElementById('k-connects').textContent=sum(data,'connects_combined').toLocaleString();
-  document.getElementById('k-dmcs').textContent=sum(data,'dmcs').toLocaleString();
-  document.getElementById('k-sales').textContent=sum(data,'sales').toLocaleString();
-
-  // aggregate per agent across filtered date range for ranking
-  const agentMap={};
-  data.forEach(r=>{
-    const k=r.user_display_name;
-    if(!agentMap[k]) agentMap[k]={agent:k,connects:0,dmcs:0,sales:0};
-    agentMap[k].connects+=r.connects_combined;
-    agentMap[k].dmcs+=r.dmcs;
-    agentMap[k].sales+=r.sales;
-  });
-  const agentArr=Object.values(agentMap).map(a=>{
-    a.rpc_pct=a.connects>0?a.dmcs/a.connects*100:0;
-    a.conv_pct=a.dmcs>0?a.sales/a.dmcs*100:0;
-    return a;
-  }).sort((a,b)=>b.sales-a.sales);
-
-  const rankRow=(r,cls)=>`<tr><td class="agent">${r.agent}</td><td class="num">${r.connects}</td><td class="num">${r.dmcs}</td><td class="num ${cls}">${r.sales}</td><td class="num">${r.rpc_pct.toFixed(1)}%</td><td class="num">${r.conv_pct.toFixed(1)}%</td></tr>`;
-  document.querySelector('#top5 tbody').innerHTML=agentArr.slice(0,5).map(r=>rankRow(r,'good')).join('');
-  document.querySelector('#bot5 tbody').innerHTML=[...agentArr].reverse().slice(0,5).map(r=>rankRow(r,'bad')).join('');
-
-  const rows=sorted(data,sorts.kpi.k,sorts.kpi.d);
-  document.querySelector('#kpiTable tbody').innerHTML=rows.map(r=>`<tr>
-    <td>${r.report_date}</td>
-    <td class="agent">${r.user_display_name}</td>
-    <td>${r.expected_hours_fmt}</td>
-    <td class="num">${r.interactions_combined.toLocaleString()}</td>
-    <td class="num">${r.connects_combined.toLocaleString()}</td>
-    <td class="num">${r.dmcs.toLocaleString()}</td>
-    <td class="num ${r.sales>0?'good':''}">${r.sales}</td>
-    <td>${r.talk_time_fmt}</td>
-    <td>${r.wrap_time_fmt}</td>
-    <td class="num ${pctCls(r.rpc_pct,20,40)}">${r.rpc_pct.toFixed(1)}%</td>
-    <td class="num ${pctCls(r.conversion_pct,5,10)}">${r.conversion_pct.toFixed(1)}%</td>
-    <td class="num">${r.dmc_talk_pct.toFixed(1)}%</td>
-  </tr>`).join('');
-}
-
-function renderPause(){
-  const raw=applyFilters(pauseRows,'Date','Team Leader');
-  const data=aggregatePause(raw);
-  document.getElementById('pau-rows').textContent=data.length.toLocaleString();
-  document.getElementById('pau-inst').textContent=sum(data,'total_pause_instances').toLocaleString();
-  const totalSec=sum(data,'total_pause_time_sec');
-  document.getElementById('pau-total').textContent=hms(totalSec);
-  document.getElementById('pau-avg').textContent=data.length?hms(Math.round(totalSec/data.length)):'-';
-
-  // bar chart
-  const totals={};
-  PAUSE_CATS.forEach(c=>totals[c]=sum(data,c+'_sec'));
-  const grand=Object.values(totals).reduce((s,v)=>s+v,0)||1;
-  const sortedCats=[...PAUSE_CATS].sort((a,b)=>totals[b]-totals[a]);
-  document.getElementById('pau-top').textContent=PAUSE_LABELS[sortedCats[0]]||'-';
-  document.getElementById('pauseBarChart').innerHTML=sortedCats.map(c=>{
-    const pct=(totals[c]/grand*100).toFixed(1);
-    const color=PAUSE_COLORS[PAUSE_CATS.indexOf(c)];
+  document.getElementById('d-total').textContent=data.reduce((s,r)=>s+r.total,0).toLocaleString();
+  document.getElementById('d-agents').textContent=new Set(data.map(r=>r.agent_name)).size.toLocaleString();
+  document.getElementById('d-disps').textContent=new Set(data.map(r=>r.disposition)).size.toLocaleString();
+  const totalCalls=data.reduce((s,r)=>s+r.total,0)||1;
+  const avgTalk=data.length?data.reduce((s,r)=>s+r.talk_time_sec,0)/data.length:0;
+  const avgWrap=data.length?data.reduce((s,r)=>s+r.wrap_time_sec,0)/data.length:0;
+  document.getElementById('d-talk').textContent=hms(Math.round(avgTalk));
+  document.getElementById('d-wrap').textContent=hms(Math.round(avgWrap));
+  // Bar chart by disposition
+  const dispTotals={};
+  data.forEach(r=>{ dispTotals[r.disposition]=(dispTotals[r.disposition]||0)+r.total; });
+  const DISP_COLORS=['#5b9bff','#ff6a3d','#ffc857','#3ddc97','#c77dff','#ff5d5d','#4dd0e1','#a3e635','#f48c06','#8338ec','#fb5607','#ff8c42'];
+  const sortedDisps=Object.entries(dispTotals).sort((a,b)=>b[1]-a[1]);
+  const grand=sortedDisps.reduce((s,[,v])=>s+v,0)||1;
+  document.getElementById('dispBarChart').innerHTML=sortedDisps.map(([d,v],i)=>{
+    const pct=(v/grand*100).toFixed(1);
+    const color=DISP_COLORS[i%DISP_COLORS.length];
     return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:7px;">
-      <div style="width:110px;font-size:11px;color:var(--muted);text-align:right;flex-shrink:0;">${PAUSE_LABELS[c]}</div>
-      <div style="flex:1;background:var(--panel-2);border-radius:4px;height:16px;overflow:hidden;">
-        <div style="width:${pct}%;background:${color};height:100%;border-radius:4px;min-width:2px;"></div>
+      <div style="width:130px;font-size:12px;color:var(--muted);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${d}">${d}</div>
+      <div style="flex:1;background:var(--panel-2);border-radius:4px;height:18px;position:relative;">
+        <div style="width:${pct}%;background:${color};height:100%;border-radius:4px;"></div>
       </div>
-      <div style="width:100px;font-family:var(--mono);font-size:11px;">${hms(totals[c])} (${pct}%)</div>
+      <div style="width:60px;font-size:12px;color:var(--text);text-align:right;">${pct}% (${v.toLocaleString()})</div>
     </div>`;
   }).join('');
-
-  const rows=sorted(data,sorts.pause.k,sorts.pause.d);
-  document.querySelector('#pauseTable tbody').innerHTML=rows.map(r=>`<tr>
-    <td>${r.Date}</td>
-    <td class="agent">${r.user_display_name}</td>
-    <td class="num">${r.total_pause_instances}</td>
-    <td class="${r.total_pause_time_sec>3*3600?'red-bg':''}">${r.total_pause_time_fmt}</td>
-    <td class="num">${r.lunch_fmt}</td>
-    <td class="num">${r.login_fmt}</td>
-    <td class="num">${r.admin_fmt}</td>
-    <td class="num">${r.meeting_fmt}</td>
-    <td class="num">${r.tea_fmt}</td>
-    <td class="num">${r.comfort_break_fmt}</td>
-    <td class="num">${r.manual_dial_fmt}</td>
-    <td class="num">${r.auto_paused_fmt}</td>
-    <td class="num">${r.training_fmt}</td>
-    <td class="num">${r.queue_missed_call_fmt}</td>
-    <td class="num">${r.voice_media_failure_fmt}</td>
+  // Table
+  const rows=sorted(data,sorts.disp.k,sorts.disp.d);
+  document.querySelector('#dispTable tbody').innerHTML=rows.map(r=>`<tr>
+    <td>${r.date}</td>
+    <td class="agent">${r.agent_name}</td>
+    <td>${r.campaign}</td>
+    <td>${r.disposition}</td>
+    <td class="num">${r.total.toLocaleString()}</td>
+    <td>${r.talk_time_fmt}</td>
+    <td>${r.wrap_time_fmt}</td>
   </tr>`).join('');
 }
-
 function renderAll(){
-  renderProductivity();
-  renderKPI();
-  renderPause();
+renderProductivity();
+renderKPI();
+renderPause();
+renderDisposition();
 }
-
 async function fetchIfSet(url, fallbackCSV, parser){
-  if(!url){
-    return parser(fallbackCSV);
-  }
-  try{
-    const res = await fetch(url + '?t=' + Date.now());
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    const text = await res.text();
-    return parser(text);
-  } catch(err){
-    console.warn('Could not load', url, err.message, '— using embedded fallback');
-    return parser(fallbackCSV);
-  }
+if(!url){
+return parser(fallbackCSV);
 }
-
+try{
+const res = await fetch(url + '?t=' + Date.now());
+if(!res.ok) throw new Error('HTTP ' + res.status);
+const text = await res.text();
+return parser(text);
+} catch(err){
+console.warn('Could not load', url, err.message, '— using embedded fallback');
+return parser(fallbackCSV);
+}
+}
 async function init(){
-  const st = document.getElementById('status');
-  st.textContent = 'Loading data...';
-  st.style.color = 'var(--muted)';
-
-  [prodRows, kpiRows, pauseRows] = await Promise.all([
-    fetchIfSet(PROD_CSV_URL,  PROD_CSV,  parseProdCSV),
-    fetchIfSet(KPI_CSV_URL,   KPI_CSV,   parseKpiCSV),
-    fetchIfSet(PAUSE_CSV_URL, PAUSE_CSV, parsePauseCSV)
-  ]);
-
-  // Auto-set date filters to the full range found in the data (only if not already set by user)
-  const allDates=[...prodRows.map(r=>r.report_date),...kpiRows.map(r=>r.report_date),...pauseRows.map(r=>r.Date)].filter(Boolean).sort();
-  if(allDates.length){
-    const fFrom=document.getElementById('fFrom'), fTo=document.getElementById('fTo');
-    if(!fFrom.value) fFrom.value=allDates[0];
-    if(!fTo.value) fTo.value=allDates[allDates.length-1];
-  }
-
-  populateFilters();
-  renderAll();
-
-  const src = (PROD_CSV_URL || PAUSE_CSV_URL) ? 'GitHub' : 'embedded data';
-  st.textContent = 'Loaded ' + prodRows.length + ' productivity, ' + kpiRows.length + ' KPI and ' + pauseRows.length + ' pause rows from ' + src + ' at ' + new Date().toLocaleTimeString() + '.';
+const st = document.getElementById('status');
+st.textContent = 'Loading data...';
+st.style.color = 'var(--muted)';
+[prodRows, kpiRows, pauseRows, dispRows] = await Promise.all([
+fetchIfSet(PROD_CSV_URL,  PROD_CSV,  parseProdCSV),
+fetchIfSet(KPI_CSV_URL,   KPI_CSV,   parseKpiCSV),
+fetchIfSet(PAUSE_CSV_URL, PAUSE_CSV, parsePauseCSV),
+fetchIfSet(DISP_CSV_URL,  '',        parseDispCSV)
+]);
+// Auto-set date filters to the full range found in the data (only if not already set by user)
+const allDates=[...prodRows.map(r=>r.report_date),...kpiRows.map(r=>r.report_date),...pauseRows.map(r=>r.Date),...dispRows.map(r=>r.date)].filter(Boolean).sort();
+if(allDates.length){
+const fFrom=document.getElementById('fFrom'), fTo=document.getElementById('fTo');
+if(!fFrom.value) fFrom.value=allDates[0];
+if(!fTo.value) fTo.value=allDates[allDates.length-1];
 }
-
+populateFilters();
+renderAll();
+const src = (PROD_CSV_URL || PAUSE_CSV_URL) ? 'GitHub' : 'embedded data';
+st.textContent = 'Loaded ' + prodRows.length + ' productivity, ' + kpiRows.length + ' KPI, ' + pauseRows.length + ' pause and ' + dispRows.length + ' disposition rows from ' + src + ' at ' + new Date().toLocaleTimeString() + '.';
+}
 // tab switching
 document.querySelectorAll('.tab-btn').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
-  });
+btn.addEventListener('click',()=>{
+document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+btn.classList.add('active');
+document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
 });
-
+});
 // filters
 ['fFrom','fTo','fCampaignGroup','fCampaign','fTL','fAgent'].forEach(id=>document.getElementById(id).addEventListener('change',renderAll));
-
 // sortable headers
-[['#prodTable','prod'],['#kpiTable','kpi'],['#pauseTable','pause']].forEach(([sel,key])=>{
-  document.querySelectorAll(sel+' th[data-s]').forEach(th=>{
-    th.addEventListener('click',()=>{
-      if(sorts[key].k===th.dataset.s) sorts[key].d*=-1; else{sorts[key].k=th.dataset.s;sorts[key].d=1;}
-      if(key==='prod') renderProductivity();
-      else if(key==='kpi') renderKPI();
-      else renderPause();
-    });
-  });
+[['#prodTable','prod'],['#kpiTable','kpi'],['#pauseTable','pause'],['#dispTable','disp']].forEach(([sel,key])=>{
+document.querySelectorAll(sel+' th[data-s]').forEach(th=>{
+th.addEventListener('click',()=>{
+if(sorts[key].k===th.dataset.s) sorts[key].d*=-1; else{sorts[key].k=th.dataset.s;sorts[key].d=1;}
+if(key==='prod') renderProductivity();
+else if(key==='kpi') renderKPI();
+else if(key==='pause') renderPause();
+else renderDisposition();
 });
-
+});
+});
 init();
 </script>
 </body>
